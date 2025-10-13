@@ -3,6 +3,6 @@
 
 files:
   - source: /Vocable/**/*.xcstrings
-    translation: /Vocable/**/%original_file_name%
+    translation: /Vocable/**/%locale%/%original_file_name%
     ignore:
       - CrowdinExport
