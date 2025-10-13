@@ -1,0 +1,4 @@
+files:
+  - source: /Vocable/**/*.xcstrings
+    ignore:
+      - CrowdinExport
