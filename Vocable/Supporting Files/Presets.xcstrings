@@ -18,8 +18,8 @@
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "I want to lie down"
+            "state": "translated",
+            "value": "Me quiero acostar"
           }
         },
         "ar": {
@@ -101,8 +101,8 @@
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Pleased to meet you"
+            "state": "translated",
+            "value": "Hola"
           }
         },
         "ar": {
