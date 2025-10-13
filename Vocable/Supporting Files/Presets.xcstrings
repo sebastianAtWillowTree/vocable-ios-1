@@ -1014,8 +1014,8 @@
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Please wait"
+            "state": "translated",
+            "value": "Espera"
           }
         },
         "ar": {
@@ -1097,8 +1097,8 @@
         },
         "es": {
           "stringUnit": {
-            "state": "needs_review",
-            "value": "Yes"
+            "state": "translated",
+            "value": "Si"
           }
         },
         "ar": {
