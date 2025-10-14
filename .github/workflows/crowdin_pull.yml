@@ -1,8 +1,5 @@
 name: Pull Translations From Crowdin
 on:
-  push:
-    branches:
-      - develop
   workflow_dispatch:
     inputs:
       runner:
