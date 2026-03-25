@@ -12,6 +12,9 @@ import Algorithms
 
 extension Category {
 
+    /// Bundled “Kids” preset category; listed first in the category carousel.
+    static let kidsPresetCategoryIdentifier = "preset_A1F00001-0000-4000-8000-000000000000"
+
     enum FetchError: Error {
         case presetCategoryNotFound(String)
     }
@@ -118,7 +121,11 @@ extension Category {
             NSSortDescriptor(keyPath: \Category.ordinal, ascending: true),
             NSSortDescriptor(keyPath: \Category.creationDate, ascending: true)
         ]
-        let results = try context.fetch(request)
+        var results = try context.fetch(request)
+        if let kidsIndex = results.firstIndex(where: { $0.identifier == Category.kidsPresetCategoryIdentifier }) {
+            let kids = results.remove(at: kidsIndex)
+            results.insert(kids, at: 0)
+        }
         for (index, category) in results.enumerated() {
             category.ordinal = Int32(index)
             category.canMoveToLowerOrdinal = false

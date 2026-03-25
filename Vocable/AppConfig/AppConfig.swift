@@ -21,6 +21,7 @@ extension UserDefaultsKey {
     static let isHeadTrackingEnabled: UserDefaultsKey = "isHeadTrackingEnabled"
     static let isCompactQWERTYKeyboardEnabled: UserDefaultsKey = "isCompactQWERTYKeyboardEnabled"
     static let selectedVoiceIdentifier: UserDefaultsKey = "selectedVoiceIdentifier"
+    static let isVisualFeedbackEnabled: UserDefaultsKey = "isVisualFeedbackEnabled"
 }
 
 struct AppConfig {
@@ -57,4 +58,7 @@ struct AppConfig {
     
     @PublishedDefault(.selectedVoiceIdentifier)
     static var selectedVoiceIdentifier: String? = .none
+
+    @PublishedDefault(.isVisualFeedbackEnabled)
+    static var isVisualFeedbackEnabled: Bool = true
 }

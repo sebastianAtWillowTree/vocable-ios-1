@@ -24,7 +24,8 @@ struct CategoryIdentifier {
     static let personalCare = CategoryIdentifier("preset_E7ADBE88-2722-4DE7-BDC1-994F07EA294B")
     static let conversation = CategoryIdentifier("preset_EB7A9732-E28E-4440-A88B-BA2A1ACFBD76")
     static let environment = CategoryIdentifier("preset_52CA4E71-4A8C-4EA8-8EA8-C4B18AA16EC8")
-    
+    static let kids = CategoryIdentifier("preset_A1F00001-0000-4000-8000-000000000000")
+
 }
 
 struct PresetCategories {
@@ -33,6 +34,7 @@ struct PresetCategories {
     
     init() {
         self.list = [
+            CategoryIdentifier.kids,
             CategoryIdentifier.general,
             CategoryIdentifier.basicNeeds,
             CategoryIdentifier.personalCare,

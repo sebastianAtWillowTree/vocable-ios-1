@@ -3653,6 +3653,162 @@
         }
       }
     },
+    "preset_A1F00001-0000-4000-8000-000000000000" : {
+      "comment" : "Preset category title for child-focused phrases.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kids"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-000A-4000-8000-00000000000A" : {
+      "comment" : "Kids phrase: break",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Break"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-000B-4000-8000-00000000000B" : {
+      "comment" : "Kids phrase: hug",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hug"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-000C-4000-8000-00000000000C" : {
+      "comment" : "Kids phrase: story time",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Story time"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0001-4000-8000-000000000001" : {
+      "comment" : "Kids phrase: swing",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swing"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0002-4000-8000-000000000002" : {
+      "comment" : "Kids phrase: more",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0003-4000-8000-000000000003" : {
+      "comment" : "Kids phrase: go",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0004-4000-8000-000000000004" : {
+      "comment" : "Kids phrase: play",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0005-4000-8000-000000000005" : {
+      "comment" : "Kids phrase: stop",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0006-4000-8000-000000000006" : {
+      "comment" : "Kids phrase: help",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0007-4000-8000-000000000007" : {
+      "comment" : "Kids phrase: want",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Want"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0008-4000-8000-000000000008" : {
+      "comment" : "Kids phrase: all done",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All done"
+          }
+        }
+      }
+    },
+    "preset_A1F00001-0009-4000-8000-000000000009" : {
+      "comment" : "Kids phrase: my turn",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My turn"
+          }
+        }
+      }
+    },
     "preset_A02D6604-5C7C-4BB0-8C4A-E1C5E0D1A869" : {
       "extractionState" : "manual",
       "localizations" : {

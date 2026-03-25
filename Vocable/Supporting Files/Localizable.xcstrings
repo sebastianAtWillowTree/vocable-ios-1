@@ -10294,6 +10294,39 @@
           }
         }
       }
+    },
+    "settings.cell.visual_feedback.title" : {
+      "comment" : "Settings row that opens visual feedback options for phrase activation.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visual Feedback"
+          }
+        }
+      }
+    },
+    "settings.visual_feedback.title" : {
+      "comment" : "Navigation title for visual feedback settings screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visual Feedback"
+          }
+        }
+      }
+    },
+    "settings.visual_feedback.toggle.title" : {
+      "comment" : "Toggle label for full-screen phrase activation visual feedback.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show full-screen phrase feedback"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

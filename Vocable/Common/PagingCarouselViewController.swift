@@ -155,8 +155,34 @@ import AVFoundation
 
     func speak(
         _ string: String,
-        forItemAt indexPath: IndexPath
+        forItemAt indexPath: IndexPath,
+        phraseIdentifier: String? = nil
     ) {
+        if Thread.isMainThread {
+            speakOnMainThread(string, forItemAt: indexPath, phraseIdentifier: phraseIdentifier)
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.speakOnMainThread(string, forItemAt: indexPath, phraseIdentifier: phraseIdentifier)
+            }
+        }
+    }
+
+    private func speakOnMainThread(
+        _ string: String,
+        forItemAt indexPath: IndexPath,
+        phraseIdentifier: String?
+    ) {
+        if AppConfig.isVisualFeedbackEnabled,
+           let phraseIdentifier,
+           let content = VisualFeedbackRegistry.content(for: phraseIdentifier),
+           let window = view.window {
+            VisualFeedbackOverlayController.shared.present(
+                content: content,
+                utterance: string,
+                in: window
+            )
+        }
+
         Task { [weak self] in
             let ranges = await VocableSpeechSynthesizer.shared.speak(string)
             guard let cell = self?.cellForItem(at: indexPath) as? HighlightableContentCell else { return }

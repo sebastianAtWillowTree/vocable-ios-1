@@ -12,7 +12,10 @@ import Foundation
 class PresetCategoryAppRestartTests: XCTestCase {
     
     let category = "General"
-    let secondCategory = "Basic Needs"
+    /// First preset category in the default list (before General).
+    let firstPresetCategory = "Kids"
+    /// Second preset category after Kids was added at the start of the list.
+    let secondCategory = "General"
     let phrase = "Test"
     
     // To avoid resetting the app on restart, we'll need to pass in new launch arguments
@@ -97,7 +100,7 @@ class PresetCategoryAppRestartTests: XCTestCase {
         try SettingsScreen.navigateToSettingsCategoryScreen()
         
         // Verify that when the first preset category is shown, up button is disabled and down button is enabled
-        VTAssertReorderArrowsEqual(.downEnabledOnly, for: category)
+        VTAssertReorderArrowsEqual(.downEnabledOnly, for: firstPresetCategory)
         
         // Hide the preset category
         try SettingsScreen.openCategorySettings(category: category)
@@ -120,30 +123,30 @@ class PresetCategoryAppRestartTests: XCTestCase {
         try SettingsScreen.navigateToSettingsCategoryScreen()
         
         // Verify that first preset category's up button is disabled and down button is enabled
-        VTAssertReorderArrowsEqual(.downEnabledOnly, for: category)
+        VTAssertReorderArrowsEqual(.downEnabledOnly, for: firstPresetCategory)
         
         // Verify that second preset category's (second in the list) up and down buttons are enabled
         VTAssertReorderArrowsEqual(.both, for: secondCategory)
         
         // Reorder categories, move first preset category to the second of the list
-        let firstCategory = try SettingsScreen.locateCategoryCell(category)
+        let firstCategory = try SettingsScreen.locateCategoryCell(firstPresetCategory)
         firstCategory.buttons[.settings.editCategories.moveDownButton].tap()
         try SettingsScreen.navBarBackButton.assertExistence(timeout: 1.0)
         
-        // Verify that first preset category's (now second in the list) up and down buttons are enabled
-        VTAssertReorderArrowsEqual(.both, for: category)
+        // Verify that moved category (now second in the list) up and down buttons are enabled
+        VTAssertReorderArrowsEqual(.both, for: firstPresetCategory)
         
-        // Verify that second custom category's (now first in the list) up button is disabled and down button is enabled
+        // Verify that second preset category (now first in the list) up button is disabled and down button is enabled
         VTAssertReorderArrowsEqual(.downEnabledOnly, for: secondCategory)
         
         // Restart the app and navigate to Settings Category Screen
         Utilities.restartApp(withLaunchArguments: disableAnimationsOnly)
         try SettingsScreen.navigateToSettingsCategoryScreen()
         
-        // Verify that first preset category's (now second in the list) up and down buttons are enabled
-        VTAssertReorderArrowsEqual(.both, for: category)
+        // Verify that moved category (now second in the list) up and down buttons are enabled
+        VTAssertReorderArrowsEqual(.both, for: firstPresetCategory)
         
-        // Verify that second preset category's (now first in the list) up button is disabled and down button is enabled
+        // Verify that second preset category (now first in the list) up button is disabled and down button is enabled
         VTAssertReorderArrowsEqual(.downEnabledOnly, for: secondCategory)
     }
     

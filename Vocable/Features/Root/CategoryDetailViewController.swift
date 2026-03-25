@@ -195,7 +195,7 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
                     try? context.save()
                 }
 
-                speak(utterance, forItemAt: indexPath)
+                speak(utterance, forItemAt: indexPath, phraseIdentifier: phrase.identifier)
             }
         case .addNewPhrase:
             addNewPhraseButtonSelected()

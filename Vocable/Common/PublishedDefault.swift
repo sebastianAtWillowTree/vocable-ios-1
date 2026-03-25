@@ -25,7 +25,7 @@ import Combine
         set {
             PublishedDefault.encodeDefaultsValue(newValue, for: defaultsKey)
             if newValue != subject.value {
-                subject.send(wrappedValue)
+                subject.send(newValue)
             }
         }
     }

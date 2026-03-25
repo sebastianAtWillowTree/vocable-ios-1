@@ -34,6 +34,7 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
         case pidTuner
         case listeningMode
         case voiceConfiguration
+        case visualFeedback
 
         var title: String {
             switch self {
@@ -55,6 +56,8 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                 return String(localized: "settings.cell.listening_mode.title")
             case .voiceConfiguration:
                 return String(localized: "settings.cell.voice_configuration.title")
+            case .visualFeedback:
+                return String(localized: "settings.cell.visual_feedback.title")
             }
         }
         
@@ -76,6 +79,8 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                 return .settings.listeningModeCell
             case .voiceConfiguration:
                 return .settings.voiceSettingsCell
+            case .visualFeedback:
+                return .settings.visualFeedbackCell
             case .pidTuner:
                 return ""
             }
@@ -88,6 +93,12 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
             }
             if self == .listeningMode {
                 return AppConfig.listeningMode.isFeatureFlagEnabled
+            }
+            if self == .visualFeedback {
+                if #available(iOS 17.0, *) {
+                    return true
+                }
+                return false
             }
             return true
         }
@@ -198,6 +209,7 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                               .timingSensitivity,
                               .listeningMode,
                               .selectionMode,
+                              .visualFeedback,
                               .resetAppSettings].filter(\.isFeatureEnabled))
         snapshot.appendSections([.externalURL])
         snapshot.appendItems([.privacyPolicy,
@@ -295,6 +307,9 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
             presentPidTuner()
         case .resetAppSettings:
             presentAppResetPrompt()
+        case .visualFeedback:
+            let viewController = VisualFeedbackSettingsViewController()
+            show(viewController, sender: nil)
         }
     }
     

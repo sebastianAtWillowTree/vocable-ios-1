@@ -19,6 +19,7 @@ extension AccessibilityID {
         public static let contactDevelopersCell: AccessibilityID = "settings-contact-developers-cell"
         public static let voiceSettingsCell: AccessibilityID = "settings-voice-settings-cell"
         public static let keyboardLayoutCell: AccessibilityID = "settings-keyboard-layout-cell"
+        public static let visualFeedbackCell: AccessibilityID = "settings-visual-feedback-cell"
         private init() {}
     }
 }
