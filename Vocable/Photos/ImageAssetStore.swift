@@ -66,6 +66,12 @@ struct ImageAssetStore: ImageAssetStoring {
         try fileManager.removeItem(at: url)
     }
 
+    func deleteAll() throws {
+        for id in allAssetIDs() {
+            try delete(id: id)
+        }
+    }
+
     func allAssetIDs() -> [String] {
         guard let contents = try? fileManager.contentsOfDirectory(
             at: baseDirectory,

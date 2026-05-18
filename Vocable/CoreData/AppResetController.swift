@@ -17,10 +17,16 @@ struct AppResetController {
 
     private let persistentContainer: NSPersistentContainer
     private let userDefaults: UserDefaults
+    private let imageAssetStore: ImageAssetStoring?
 
-    init(persistentContainer: NSPersistentContainer = .shared, userDefaults: UserDefaults = .standard) {
+    init(
+        persistentContainer: NSPersistentContainer = .shared,
+        userDefaults: UserDefaults = .standard,
+        imageAssetStore: ImageAssetStoring? = nil
+    ) {
         self.persistentContainer = persistentContainer
         self.userDefaults = userDefaults
+        self.imageAssetStore = imageAssetStore ?? (try? ImageAssetStore())
     }
 
     func performReset(withPresets presets: PresetData? = TextPresets.presets) -> Bool {
@@ -28,6 +34,8 @@ struct AppResetController {
         guard resetUserDefaults() else {
             return false
         }
+
+        try? imageAssetStore?.deleteAll()
 
         let migrationController = PersistenceMigrationController(persistentContainer: persistentContainer)
 

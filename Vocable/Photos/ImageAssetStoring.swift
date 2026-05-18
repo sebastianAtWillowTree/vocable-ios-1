@@ -12,5 +12,6 @@ protocol ImageAssetStoring {
     func save(_ image: UIImage) throws -> String
     func load(id: String) -> UIImage?
     func delete(id: String) throws
+    func deleteAll() throws
     func allAssetIDs() -> [String]
 }
