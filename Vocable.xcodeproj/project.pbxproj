@@ -79,6 +79,7 @@
 		6B05020427F3489D000CFE5A /* Collections in Frameworks */ = {isa = PBXBuildFile; productRef = 6B05020327F3489D000CFE5A /* Collections */; };
 		6B05020727F351A1000CFE5A /* CategoryReordering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B05020627F351A1000CFE5A /* CategoryReordering.swift */; };
 		6B05020927F353DE000CFE5A /* CategoryOrderabilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B05020827F353DE000CFE5A /* CategoryOrderabilityTests.swift */; };
+		D1A0B1C2D3E4F50617283940 /* PhrasesModelMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2A0B1C2D3E4F50617283941 /* PhrasesModelMigrationTests.swift */; };
 		6B1086732463662C00E729A8 /* v2_to_v3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */; };
 		6B14DC732419590E0050C287 /* OutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B14DC722419590E0050C287 /* OutputTextView.swift */; };
 		6B17CD8023EA045D0050BCB8 /* ViewControllerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B17CD7F23EA045D0050BCB8 /* ViewControllerWrapperView.swift */; };
@@ -419,6 +420,7 @@
 		6B0501FD27EBA471000CFE5A /* VocableListCellAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocableListCellAction.swift; sourceTree = "<group>"; };
 		6B05020627F351A1000CFE5A /* CategoryReordering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryReordering.swift; sourceTree = "<group>"; };
 		6B05020827F353DE000CFE5A /* CategoryOrderabilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryOrderabilityTests.swift; sourceTree = "<group>"; };
+		D2A0B1C2D3E4F50617283941 /* PhrasesModelMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhrasesModelMigrationTests.swift; sourceTree = "<group>"; };
 		6B1086712463102F00E729A8 /* Phrases v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v3.xcdatamodel"; sourceTree = "<group>"; };
 		6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = v2_to_v3.xcmappingmodel; sourceTree = "<group>"; };
 		6B14DC722419590E0050C287 /* OutputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTextView.swift; sourceTree = "<group>"; };
@@ -438,6 +440,7 @@
 		6B5C490C245CB92700A4433C /* CategoryDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryDetailViewController.swift; sourceTree = "<group>"; };
 		6B5C490E2460627A00A4433C /* NumericCategoryContentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumericCategoryContentViewController.swift; sourceTree = "<group>"; };
 		6B5C73A527DFACBA00004713 /* Phrases v4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v4.xcdatamodel"; sourceTree = "<group>"; };
+		D3A0B1C2D3E4F50617283942 /* Phrases v5.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v5.xcdatamodel"; sourceTree = "<group>"; };
 		6B5C73A627DFE61600004713 /* PredicateBuilders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PredicateBuilders.swift; sourceTree = "<group>"; };
 		6B5C73A827DFE63600004713 /* NSPredicate+Operators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSPredicate+Operators.swift"; sourceTree = "<group>"; };
 		6B5C73B227E3ADCF00004713 /* AppResetController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppResetController.swift; sourceTree = "<group>"; };
@@ -856,6 +859,7 @@
 			isa = PBXGroup;
 			children = (
 				6B05020827F353DE000CFE5A /* CategoryOrderabilityTests.swift */,
+				D2A0B1C2D3E4F50617283941 /* PhrasesModelMigrationTests.swift */,
 				54D3C41823E37CD40061EF47 /* Info.plist */,
 			);
 			path = VocableTests;
@@ -1888,6 +1892,7 @@
 				6B8D3C1A282C288C00DDB9B7 /* AccessibilityID+Root.swift in Sources */,
 				B23B3DD62C73BBA3000B33F3 /* KeyboardKeyAction.swift in Sources */,
 				6B05020927F353DE000CFE5A /* CategoryOrderabilityTests.swift in Sources */,
+				D1A0B1C2D3E4F50617283940 /* PhrasesModelMigrationTests.swift in Sources */,
 				6B8D3C1F282C288C00DDB9B7 /* AccessibilityID+Settings+EditPhrases.swift in Sources */,
 				6BE02F6D2816EF88002CCCED /* Environment.swift in Sources */,
 				6B8D3C2C282C2B5E00DDB9B7 /* XCUIElementQuery+AccessibilityID.swift in Sources */,
@@ -2501,12 +2506,13 @@
 		6BFB18C024002C7B002C3515 /* Phrases.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				D3A0B1C2D3E4F50617283942 /* Phrases v5.xcdatamodel */,
 				6B5C73A527DFACBA00004713 /* Phrases v4.xcdatamodel */,
 				6B1086712463102F00E729A8 /* Phrases v3.xcdatamodel */,
 				B8D55689242FE8B900B0F6FE /* Phrases v2.xcdatamodel */,
 				6BFB18C124002C7B002C3515 /* Phrases.xcdatamodel */,
 			);
-			currentVersion = 6B5C73A527DFACBA00004713 /* Phrases v4.xcdatamodel */;
+			currentVersion = D3A0B1C2D3E4F50617283942 /* Phrases v5.xcdatamodel */;
 			path = Phrases.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
