@@ -16,11 +16,14 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
     
     private var dataSource: DataSource!
     private var cellRegistration: CellRegistration!
-    
+
     private weak var composeVC: MFMailComposeViewController?
+
+    private let experimentalSectionViewModel = SettingsExperimentalSectionViewModel()
 
     private enum Section: Int, CaseIterable {
         case internalSettings
+        case experimental
         case externalURL
     }
 
@@ -34,6 +37,7 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
         case pidTuner
         case listeningMode
         case voiceConfiguration
+        case experimentalFeatures
 
         var title: String {
             switch self {
@@ -55,9 +59,15 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                 return String(localized: "settings.cell.listening_mode.title")
             case .voiceConfiguration:
                 return String(localized: "settings.cell.voice_configuration.title")
+            case .experimentalFeatures:
+                // Overridden in cellRegistration to reflect current toggle state.
+                return String(
+                    localized: "settings.experimental_features.title",
+                    defaultValue: "Experimental Features"
+                )
             }
         }
-        
+
         var accessibiltyId: AccessibilityID {
             switch self {
             case .categories:
@@ -76,7 +86,7 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                 return .settings.listeningModeCell
             case .voiceConfiguration:
                 return .settings.voiceSettingsCell
-            case .pidTuner:
+            case .pidTuner, .experimentalFeatures:
                 return ""
             }
         }
@@ -142,6 +152,8 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
             switch section {
             case .internalSettings:
                 return self.internalLinksSection(environment: environment)
+            case .experimental:
+                return self.internalLinksSection(environment: environment)
             case .externalURL:
                 return self.externalLinksSection(environment: environment)
             }
@@ -156,6 +168,12 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                     self?.handleItemSelection(item)
                 }
                 cell.accessibilityID = item.accessibiltyId
+            } else if item == .experimentalFeatures, let vm = self?.experimentalSectionViewModel {
+                let displayTitle = "\(vm.rowTitle) (\(vm.rowValueDescription))"
+                cell.contentConfiguration = VocableListContentConfiguration.disclosureCell(title: displayTitle) {
+                    self?.handleItemSelection(item)
+                }
+                cell.accessibilityLabel = vm.rowAccessibilityLabel
             } else {
                 cell.contentConfiguration = VocableListContentConfiguration.disclosureCell(title: item.title) {
                     self?.handleItemSelection(item)
@@ -199,9 +217,20 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
                               .listeningMode,
                               .selectionMode,
                               .resetAppSettings].filter(\.isFeatureEnabled))
+        if experimentalSectionViewModel.isSectionVisible {
+            snapshot.appendSections([.experimental])
+            snapshot.appendItems([.experimentalFeatures])
+        }
         snapshot.appendSections([.externalURL])
         snapshot.appendItems([.privacyPolicy,
                               .contactDevs].filter(\.isFeatureEnabled))
+        dataSource.apply(snapshot, animatingDifferences: false)
+    }
+
+    private func reconfigureExperimentalRow() {
+        var snapshot = dataSource.snapshot()
+        guard snapshot.itemIdentifiers.contains(.experimentalFeatures) else { return }
+        snapshot.reconfigureItems([.experimentalFeatures])
         dataSource.apply(snapshot, animatingDifferences: false)
     }
 
@@ -295,6 +324,9 @@ final class SettingsViewController: VocableCollectionViewController, MFMailCompo
             presentPidTuner()
         case .resetAppSettings:
             presentAppResetPrompt()
+        case .experimentalFeatures:
+            experimentalSectionViewModel.toggle()
+            reconfigureExperimentalRow()
         }
     }
     
