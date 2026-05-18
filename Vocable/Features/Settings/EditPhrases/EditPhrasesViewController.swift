@@ -221,7 +221,12 @@ private extension EditPhrasesViewController {
     func phraseCellRegistration() -> UICollectionView.CellRegistration<VocableListCell, Phrase> {
         UICollectionView.CellRegistration<VocableListCell, Phrase> { cell, _, phrase in
             let phraseIdentifier = phrase.objectID
-            
+            let hasImage = phrase.imageAssetID != nil
+
+            let photoAction = VocableListCellAction.photo(hasImage: hasImage) { [weak self] in
+                self?.handlePhotoActionTap(for: phraseIdentifier)
+            }
+
             let deleteAction = VocableListCellAction.delete(
                 accessibilityIdentifier: .settings.editPhrases.deletePhraseButton
             ) { [weak self] in
@@ -230,7 +235,7 @@ private extension EditPhrasesViewController {
 
             cell.contentConfiguration = VocableListContentConfiguration(
                 title: phrase.utterance ?? "",
-                actions: [deleteAction],
+                actions: [photoAction, deleteAction],
                 accessory: .disclosureIndicator(),
                 accessibilityIdentifier: .settings.editPhrases.editPhraseButton
             ) { [weak self] in
@@ -238,5 +243,90 @@ private extension EditPhrasesViewController {
             }
             cell.accessibilityIdentifier = phrase.identifier
         }
+    }
+}
+
+// MARK: - Photo flow
+
+extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
+
+    fileprivate func handlePhotoActionTap(for phraseID: NSManagedObjectID) {
+        let context = NSPersistentContainer.shared.viewContext
+        guard let store = try? ImageAssetStore() else { return }
+        let viewModel = PhrasePhotoEditorViewModel(
+            phraseID: phraseID,
+            context: context,
+            store: store,
+            delegate: self
+        )
+
+        switch viewModel.mode {
+        case .empty:
+            viewModel.requestAddOrChange()
+        case .filled:
+            presentExistingPhotoMenu(for: viewModel)
+        }
+    }
+
+    private func presentExistingPhotoMenu(for viewModel: PhrasePhotoEditorViewModel) {
+        let title = String(
+            localized: "phrase_editor.alert.photo_menu.title",
+            defaultValue: "Photo"
+        )
+        let changeTitle = String(
+            localized: "phrase_editor.alert.photo_menu.change",
+            defaultValue: "Change Photo"
+        )
+        let removeTitle = String(
+            localized: "phrase_editor.alert.photo_menu.remove",
+            defaultValue: "Remove Photo"
+        )
+        let cancelTitle = String(
+            localized: "phrase_editor.alert.photo_menu.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(GazeableAlertAction(title: changeTitle, handler: {
+            viewModel.requestAddOrChange()
+        }))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: {
+            viewModel.requestRemove()
+        }))
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        present(alert, animated: true)
+    }
+
+    func phrasePhotoEditor(
+        _ editor: PhrasePhotoEditorViewModel,
+        requestsAddOrChangePhotoFor phraseID: NSManagedObjectID
+    ) {
+        // Source picker presentation is delivered by B2.
+        // For now the entry point is wired; tapping has no further effect
+        // until B2 is implemented.
+    }
+
+    func phrasePhotoEditor(
+        _ editor: PhrasePhotoEditorViewModel,
+        requestsRemovalConfirmationFor phraseID: NSManagedObjectID,
+        confirm: @escaping () -> Void
+    ) {
+        let title = String(
+            localized: "phrase_editor.alert.remove_photo.title",
+            defaultValue: "Remove this photo?"
+        )
+        let removeTitle = String(
+            localized: "phrase_editor.alert.remove_photo.confirm",
+            defaultValue: "Remove"
+        )
+        let cancelTitle = String(
+            localized: "phrase_editor.alert.remove_photo.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: confirm))
+        present(alert, animated: true)
     }
 }

@@ -136,6 +136,21 @@ struct VocableListCellAction: Equatable {
         )
     }
 
+    static func photo(
+        hasImage: Bool,
+        isEnabled: Bool = true,
+        accessibilityIdentifier: AccessibilityID? = nil,
+        action: Action?
+    ) -> VocableListCellAction {
+        VocableListCellAction(
+            systemImage: hasImage ? "photo.circle" : "camera.circle",
+            isEnabled: isEnabled,
+            accessibilityIdentifier: accessibilityIdentifier,
+            accessibilityLabel: hasImage ? "change photo" : "add photo",
+            action: action
+        )
+    }
+
     static func == (lhs: VocableListCellAction, rhs: VocableListCellAction) -> Bool {
         lhs.isEnabled == rhs.isEnabled &&
         lhs.accessibilityIdentifier == rhs.accessibilityIdentifier &&
