@@ -309,10 +309,23 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
     ) {
         sourceCoordinator.present(from: self) { [weak self] image in
             guard let self, let image else { return }
-            // B3 will insert a square-crop confirmation step here. For now
-            // the picked image is saved as-is so the end-to-end flow works.
-            self.savePickedImage(image, for: phraseID)
+            self.presentCropConfirmation(for: image, phraseID: phraseID)
         }
+    }
+
+    private func presentCropConfirmation(for image: UIImage, phraseID: NSManagedObjectID) {
+        let cropVC = PhotoCropViewController(
+            image: image,
+            onConfirm: { [weak self] cropped in
+                self?.dismiss(animated: true) {
+                    self?.savePickedImage(cropped, for: phraseID)
+                }
+            },
+            onCancel: { [weak self] in
+                self?.dismiss(animated: true)
+            }
+        )
+        present(cropVC, animated: true)
     }
 
     private func savePickedImage(_ image: UIImage, for phraseID: NSManagedObjectID) {
