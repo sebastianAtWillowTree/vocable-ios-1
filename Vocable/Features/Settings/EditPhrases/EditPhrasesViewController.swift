@@ -15,6 +15,12 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
     var category: Category!
     private var disposables = Set<AnyCancellable>()
 
+    private lazy var sourceCoordinator = PhotoSourceCoordinator(
+        choicePresenter: AlertSourceChoicePresenter(),
+        sourceProvider: SystemPhotoSourceProvider(),
+        availability: UIKitCameraAvailability()
+    )
+
     private lazy var dataSourceProxy = makeDataSourceProxy()
 
     private lazy var fetchRequest: NSFetchRequest<Phrase> = {
@@ -301,9 +307,25 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
         _ editor: PhrasePhotoEditorViewModel,
         requestsAddOrChangePhotoFor phraseID: NSManagedObjectID
     ) {
-        // Source picker presentation is delivered by B2.
-        // For now the entry point is wired; tapping has no further effect
-        // until B2 is implemented.
+        sourceCoordinator.present(from: self) { [weak self] image in
+            guard let self, let image else { return }
+            // B3 will insert a square-crop confirmation step here. For now
+            // the picked image is saved as-is so the end-to-end flow works.
+            self.savePickedImage(image, for: phraseID)
+        }
+    }
+
+    private func savePickedImage(_ image: UIImage, for phraseID: NSManagedObjectID) {
+        do {
+            let store = try ImageAssetStore()
+            let assetID = try store.save(image)
+            let context = NSPersistentContainer.shared.viewContext
+            let object = context.object(with: phraseID)
+            object.setValue(assetID, forKey: "imageAssetID")
+            try context.save()
+        } catch {
+            assertionFailure("Failed to save picked photo: \(error)")
+        }
     }
 
     func phrasePhotoEditor(
