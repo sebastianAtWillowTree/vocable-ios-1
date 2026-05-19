@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Localized in Supporting Files &gt; InfoPlist.strings</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Localized in Supporting Files &gt; InfoPlist.strings</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Localized in Supporting Files &gt; InfoPlist.strings</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

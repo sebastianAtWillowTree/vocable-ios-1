@@ -173,7 +173,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vocable uses your device's front camera to detect minimal changes in head orientation and position. This allows users with limited mobility to control an on-screen pointer to interact with the app. Camera data is used expressly for controlling the on-screen pointer. This data is not stored or transmitted in any way. Vocable needs permission to use the camera for this purpose."
+            "value": "Vocable uses your device's front camera to detect minimal changes in head orientation and position. This allows users with limited mobility to control an on-screen pointer to interact with the app. Camera data is used expressly for controlling the on-screen pointer. This data is not stored or transmitted in any way. Vocable needs permission to use the camera for this purpose. Vocable also uses the camera to take photos that caregivers can attach to communication cards for personalized recognition."
           }
         },
         "fr": {
@@ -412,6 +412,89 @@
           "stringUnit": {
             "state": "needs_review",
             "value": "When listening mode is enabled, Vocable uses speech recognition to convert audio data into text. Transcribed speech is not stored or transmitted except when the user chooses to share this information anonymously with developers to help improve listening mode."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "comment": "Photo Library usage — for caregiver-attached card photos",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Vocable accesses photos you choose so caregivers can attach personalized images to communication cards. Photos remain on your device — they are never uploaded or shared."
           }
         }
       }
