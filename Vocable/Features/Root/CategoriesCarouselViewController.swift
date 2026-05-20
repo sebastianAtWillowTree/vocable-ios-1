@@ -167,6 +167,11 @@ import Combine
         try? frc.performFetch()
     }
 
+    private lazy var thumbnailLoader: ThumbnailLoading? = {
+        guard let store = try? ImageAssetStore() else { return nil }
+        return ThumbnailLoader(store: store)
+    }()
+
     private func configureCell(_ cell: UICollectionViewCell, for categoryObjectID: NSManagedObjectID, at indexPath: IndexPath) {
         guard
             let category = self.frc.managedObjectContext.object(with: categoryObjectID) as? Category,
@@ -176,6 +181,9 @@ import Combine
         }
         cell.setup(title: category.name!)
         cell.accessibilityIdentifier = category.identifier
+        if let loader = thumbnailLoader {
+            cell.configureThumbnail(assetID: category.imageAssetID, loader: loader)
+        }
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {

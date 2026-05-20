@@ -115,6 +115,11 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         }
     }
 
+    private lazy var thumbnailLoader: ThumbnailLoading? = {
+        guard let store = try? ImageAssetStore() else { return nil }
+        return ThumbnailLoader(store: store)
+    }()
+
     private func configureCell(_ cell: UICollectionViewCell, for item: CategoryItem, at indexPath: IndexPath) {
         switch item {
         case .persistedPhrase(let objectId):
@@ -123,6 +128,9 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
             guard let phrase = Phrase.fetchObject(in: self.frc.managedObjectContext, matching: objectId) else { return }
             cell?.textLabel.text = phrase.utterance
             cell?.accessibilityIdentifier = phrase.identifier
+            if let loader = thumbnailLoader {
+                cell?.configureThumbnail(assetID: phrase.imageAssetID, loader: loader)
+            }
         case .addNewPhrase:
             let cell = cell as? AddPhraseCollectionViewCell
                 cell?.accessibilityID = .root.addPhraseButton
