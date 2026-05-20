@@ -21,6 +21,14 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         availability: UIKitCameraAvailability()
     )
 
+    private lazy var enhanceCoordinator = PhotoEnhanceCoordinator(
+        gate: ExperimentalFeatureGate(),
+        picker: AlertVariantPicker(),
+        subjectLifter: VisionSubjectLiftService(),
+        stylizer: ImagePlaygroundStylizer(),
+        progress: AlertEnhancementProgress()
+    )
+
     private lazy var dataSourceProxy = makeDataSourceProxy()
 
     private lazy var fetchRequest: NSFetchRequest<Phrase> = {
@@ -318,7 +326,7 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
             image: image,
             onConfirm: { [weak self] cropped in
                 self?.dismiss(animated: true) {
-                    self?.savePickedImage(cropped, for: phraseID)
+                    self?.runEnhanceAndSave(cropped, for: phraseID)
                 }
             },
             onCancel: { [weak self] in
@@ -326,6 +334,13 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
             }
         )
         present(cropVC, animated: true)
+    }
+
+    private func runEnhanceAndSave(_ image: UIImage, for phraseID: NSManagedObjectID) {
+        enhanceCoordinator.enhance(image: image, from: self) { [weak self] enhanced in
+            guard let enhanced else { return }
+            self?.savePickedImage(enhanced, for: phraseID)
+        }
     }
 
     private func savePickedImage(_ image: UIImage, for phraseID: NSManagedObjectID) {

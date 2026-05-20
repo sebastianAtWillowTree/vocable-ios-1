@@ -21,6 +21,14 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
         availability: UIKitCameraAvailability()
     )
 
+    private lazy var enhanceCoordinator = PhotoEnhanceCoordinator(
+        gate: ExperimentalFeatureGate(),
+        picker: AlertVariantPicker(),
+        subjectLifter: VisionSubjectLiftService(),
+        stylizer: ImagePlaygroundStylizer(),
+        progress: AlertEnhancementProgress()
+    )
+
     private var cellRegistration: UICollectionView.CellRegistration<VocableListCell, Category>!
 
     private lazy var diffableDataSource = CarouselCollectionViewDataSourceProxy<String, NSManagedObjectID>(collectionView: collectionView) { [weak self] (collectionView, indexPath, category) -> UICollectionViewCell? in
@@ -376,7 +384,7 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
             image: image,
             onConfirm: { [weak self] cropped in
                 self?.dismiss(animated: true) {
-                    self?.savePickedImage(cropped, for: categoryID)
+                    self?.runEnhanceAndSave(cropped, for: categoryID)
                 }
             },
             onCancel: { [weak self] in
@@ -384,6 +392,13 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
             }
         )
         present(cropVC, animated: true)
+    }
+
+    private func runEnhanceAndSave(_ image: UIImage, for categoryID: NSManagedObjectID) {
+        enhanceCoordinator.enhance(image: image, from: self) { [weak self] enhanced in
+            guard let enhanced else { return }
+            self?.savePickedImage(enhanced, for: categoryID)
+        }
     }
 
     private func savePickedImage(_ image: UIImage, for categoryID: NSManagedObjectID) {
