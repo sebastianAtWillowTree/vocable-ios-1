@@ -15,6 +15,12 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
     private var carouselCollectionViewController: CarouselGridCollectionViewController?
     private var disposables = Set<AnyCancellable>()
 
+    private lazy var sourceCoordinator = PhotoSourceCoordinator(
+        choicePresenter: AlertSourceChoicePresenter(),
+        sourceProvider: SystemPhotoSourceProvider(),
+        availability: UIKitCameraAvailability()
+    )
+
     private var cellRegistration: UICollectionView.CellRegistration<VocableListCell, Category>!
 
     private lazy var diffableDataSource = CarouselCollectionViewDataSourceProxy<String, NSManagedObjectID>(collectionView: collectionView) { [weak self] (collectionView, indexPath, category) -> UICollectionViewCell? in
@@ -95,9 +101,15 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
             self?.handleMoveDownForCategory(withObjectID: categoryID)
         }
 
+        let photoAction = VocableListCellAction.photo(
+            hasImage: category.imageAssetID != nil
+        ) { [weak self] in
+            self?.handlePhotoActionTap(for: categoryID)
+        }
+
         var config = VocableListContentConfiguration(
             title: category.name ?? "",
-            actions: [upAction, downAction],
+            actions: [upAction, downAction, photoAction],
             accessory: .disclosureIndicator(),
             accessibilityIdentifier: .settings.editCategories.categoryButton
         ) { [weak self] in
@@ -271,5 +283,119 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
         viewController.modalPresentationStyle = .fullScreen
         present(viewController, animated: true)
     }
-    
+
+}
+
+// MARK: - Photo flow
+
+extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
+
+    fileprivate func handlePhotoActionTap(for categoryID: NSManagedObjectID) {
+        let context = NSPersistentContainer.shared.viewContext
+        guard let store = try? ImageAssetStore() else { return }
+        let viewModel = CategoryPhotoEditorViewModel(
+            categoryID: categoryID,
+            context: context,
+            store: store,
+            delegate: self
+        )
+
+        switch viewModel.mode {
+        case .empty:
+            viewModel.requestAddOrChange()
+        case .filled:
+            presentExistingPhotoMenu(for: viewModel)
+        }
+    }
+
+    private func presentExistingPhotoMenu(for viewModel: CategoryPhotoEditorViewModel) {
+        let title = String(
+            localized: "category_editor.alert.photo_menu.title",
+            defaultValue: "Photo"
+        )
+        let changeTitle = String(
+            localized: "category_editor.alert.photo_menu.change",
+            defaultValue: "Change Photo"
+        )
+        let removeTitle = String(
+            localized: "category_editor.alert.photo_menu.remove",
+            defaultValue: "Remove Photo"
+        )
+        let cancelTitle = String(
+            localized: "category_editor.alert.photo_menu.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(GazeableAlertAction(title: changeTitle, handler: {
+            viewModel.requestAddOrChange()
+        }))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: {
+            viewModel.requestRemove()
+        }))
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        present(alert, animated: true)
+    }
+
+    func categoryPhotoEditor(
+        _ editor: CategoryPhotoEditorViewModel,
+        requestsAddOrChangePhotoFor categoryID: NSManagedObjectID
+    ) {
+        sourceCoordinator.present(from: self) { [weak self] image in
+            guard let self, let image else { return }
+            self.presentCropConfirmation(for: image, categoryID: categoryID)
+        }
+    }
+
+    func categoryPhotoEditor(
+        _ editor: CategoryPhotoEditorViewModel,
+        requestsRemovalConfirmationFor categoryID: NSManagedObjectID,
+        confirm: @escaping () -> Void
+    ) {
+        let title = String(
+            localized: "category_editor.alert.remove_photo.title",
+            defaultValue: "Remove this photo?"
+        )
+        let removeTitle = String(
+            localized: "category_editor.alert.remove_photo.confirm",
+            defaultValue: "Remove"
+        )
+        let cancelTitle = String(
+            localized: "category_editor.alert.remove_photo.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: confirm))
+        present(alert, animated: true)
+    }
+
+    private func presentCropConfirmation(for image: UIImage, categoryID: NSManagedObjectID) {
+        let cropVC = PhotoCropViewController(
+            image: image,
+            onConfirm: { [weak self] cropped in
+                self?.dismiss(animated: true) {
+                    self?.savePickedImage(cropped, for: categoryID)
+                }
+            },
+            onCancel: { [weak self] in
+                self?.dismiss(animated: true)
+            }
+        )
+        present(cropVC, animated: true)
+    }
+
+    private func savePickedImage(_ image: UIImage, for categoryID: NSManagedObjectID) {
+        do {
+            let store = try ImageAssetStore()
+            let assetID = try store.save(image)
+            let context = NSPersistentContainer.shared.viewContext
+            let object = context.object(with: categoryID)
+            object.setValue(assetID, forKey: "imageAssetID")
+            try context.save()
+        } catch {
+            assertionFailure("Failed to save category photo: \(error)")
+        }
+    }
 }
