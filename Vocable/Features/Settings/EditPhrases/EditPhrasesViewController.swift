@@ -29,6 +29,13 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         progress: AlertEnhancementProgress()
     )
 
+    private lazy var audioEnhanceCoordinator = AudioEnhanceCoordinator(
+        gate: ExperimentalFeatureGate(),
+        picker: AlertAudioVariantPicker(),
+        isolator: AVEngineVoiceIsolator(),
+        progress: AlertEnhancementProgress()
+    )
+
     private lazy var dataSourceProxy = makeDataSourceProxy()
 
     private lazy var fetchRequest: NSFetchRequest<Phrase> = {
@@ -456,7 +463,7 @@ extension EditPhrasesViewController: PhraseRecordingEditorDelegate {
         let recorder = VoiceRecorderViewController(
             onSave: { [weak self] data in
                 self?.dismiss(animated: true) {
-                    self?.savePickedRecording(data, for: phraseID)
+                    self?.runAudioEnhanceAndSave(data, for: phraseID)
                 }
             },
             onCancel: { [weak self] in
@@ -464,6 +471,13 @@ extension EditPhrasesViewController: PhraseRecordingEditorDelegate {
             }
         )
         present(recorder, animated: true)
+    }
+
+    private func runAudioEnhanceAndSave(_ data: Data, for phraseID: NSManagedObjectID) {
+        audioEnhanceCoordinator.enhance(audioData: data, from: self) { [weak self] enhanced in
+            guard let enhanced else { return }
+            self?.savePickedRecording(enhanced, for: phraseID)
+        }
     }
 
     func phraseRecordingEditor(
