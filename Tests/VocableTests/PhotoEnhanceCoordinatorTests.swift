@@ -153,7 +153,8 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
     ) -> PhotoEnhanceCoordinator {
         let capability = StubCapability(
             isSubjectLiftAvailable: subjectLift,
-            isImagePlaygroundAvailable: stylize
+            isImagePlaygroundAvailable: stylize,
+            isVoiceEnhancementAvailable: false
         )
         let gate = ExperimentalFeatureGate(capability: capability, userDefaults: userDefaults)
         if toggleOn { gate.isEnabled = true }
@@ -182,6 +183,7 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
 private struct StubCapability: OSCapabilityProviding {
     let isSubjectLiftAvailable: Bool
     let isImagePlaygroundAvailable: Bool
+    let isVoiceEnhancementAvailable: Bool
 }
 
 private final class SpyVariantPicker: PhotoEnhanceVariantPickerPresenting {

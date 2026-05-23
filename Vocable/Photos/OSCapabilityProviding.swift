@@ -17,6 +17,10 @@ protocol OSCapabilityProviding {
     /// Whether Apple Image Playground stylization is supported.
     /// Requires iOS 18.1+ on an Apple-Intelligence-capable device.
     var isImagePlaygroundAvailable: Bool { get }
+
+    /// Whether voice enhancement (isolation / denoise) is supported.
+    /// Requires iOS 17+ for AVAudioEngine voice-processing input.
+    var isVoiceEnhancementAvailable: Bool { get }
 }
 
 /// Real OS-backed implementation used in production.
@@ -35,6 +39,14 @@ struct SystemOSCapability: OSCapabilityProviding {
         // For now, gate purely by OS version; experimental toggle still
         // gates surfacing the feature.
         if #available(iOS 18.1, *) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    var isVoiceEnhancementAvailable: Bool {
+        if #available(iOS 17, *) {
             return true
         } else {
             return false

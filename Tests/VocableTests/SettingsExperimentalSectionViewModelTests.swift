@@ -80,7 +80,8 @@ final class SettingsExperimentalSectionViewModelTests: XCTestCase {
     ) -> SettingsExperimentalSectionViewModel {
         let capability = StubOSCapability(
             isSubjectLiftAvailable: subjectLiftCapable,
-            isImagePlaygroundAvailable: imagePlaygroundCapable
+            isImagePlaygroundAvailable: imagePlaygroundCapable,
+            isVoiceEnhancementAvailable: false
         )
         let gate = ExperimentalFeatureGate(capability: capability, userDefaults: userDefaults)
         return SettingsExperimentalSectionViewModel(gate: gate)
@@ -90,4 +91,5 @@ final class SettingsExperimentalSectionViewModelTests: XCTestCase {
 private struct StubOSCapability: OSCapabilityProviding {
     let isSubjectLiftAvailable: Bool
     let isImagePlaygroundAvailable: Bool
+    let isVoiceEnhancementAvailable: Bool
 }

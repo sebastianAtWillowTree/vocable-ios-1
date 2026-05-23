@@ -40,10 +40,17 @@ struct ExperimentalFeatureGate {
         isEnabled && capability.isImagePlaygroundAvailable
     }
 
+    /// True iff the toggle is on AND the device supports voice enhancement.
+    var isVoiceEnhancementAvailable: Bool {
+        isEnabled && capability.isVoiceEnhancementAvailable
+    }
+
     /// True iff *any* experimental capability is supported by the device,
     /// regardless of toggle state. Used to decide whether the Experimental
     /// Features settings section should be visible at all.
     var anyExperimentalAvailable: Bool {
-        capability.isSubjectLiftAvailable || capability.isImagePlaygroundAvailable
+        capability.isSubjectLiftAvailable
+            || capability.isImagePlaygroundAvailable
+            || capability.isVoiceEnhancementAvailable
     }
 }

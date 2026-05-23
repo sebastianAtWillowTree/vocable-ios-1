@@ -95,12 +95,34 @@ final class ExperimentalFeatureGateTests: XCTestCase {
         XCTAssertFalse(gate.isEnabled)
     }
 
+    func test_gate_voiceEnhancement_returnsFalse_whenToggleOff() {
+        let gate = makeGate(subjectLiftCapable: false, imagePlaygroundCapable: false, voiceEnhancementCapable: true)
+        gate.isEnabled = false
+        XCTAssertFalse(gate.isVoiceEnhancementAvailable)
+    }
+
+    func test_gate_voiceEnhancement_returnsTrue_whenToggleOnAndCapable() {
+        let gate = makeGate(subjectLiftCapable: false, imagePlaygroundCapable: false, voiceEnhancementCapable: true)
+        gate.isEnabled = true
+        XCTAssertTrue(gate.isVoiceEnhancementAvailable)
+    }
+
+    func test_gate_anyExperimentalAvailable_isTrue_ifVoiceEnhancementCapable() {
+        let gate = makeGate(subjectLiftCapable: false, imagePlaygroundCapable: false, voiceEnhancementCapable: true)
+        XCTAssertTrue(gate.anyExperimentalAvailable)
+    }
+
     // MARK: - Helpers
 
-    private func makeGate(subjectLiftCapable: Bool, imagePlaygroundCapable: Bool) -> ExperimentalFeatureGate {
+    private func makeGate(
+        subjectLiftCapable: Bool,
+        imagePlaygroundCapable: Bool,
+        voiceEnhancementCapable: Bool = false
+    ) -> ExperimentalFeatureGate {
         let capability = StubOSCapability(
             isSubjectLiftAvailable: subjectLiftCapable,
-            isImagePlaygroundAvailable: imagePlaygroundCapable
+            isImagePlaygroundAvailable: imagePlaygroundCapable,
+            isVoiceEnhancementAvailable: voiceEnhancementCapable
         )
         return ExperimentalFeatureGate(capability: capability, userDefaults: userDefaults)
     }
@@ -109,4 +131,5 @@ final class ExperimentalFeatureGateTests: XCTestCase {
 private struct StubOSCapability: OSCapabilityProviding {
     let isSubjectLiftAvailable: Bool
     let isImagePlaygroundAvailable: Bool
+    let isVoiceEnhancementAvailable: Bool
 }
