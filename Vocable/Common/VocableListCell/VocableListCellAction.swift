@@ -151,6 +151,21 @@ struct VocableListCellAction: Equatable {
         )
     }
 
+    static func record(
+        hasRecording: Bool,
+        isEnabled: Bool = true,
+        accessibilityIdentifier: AccessibilityID? = nil,
+        action: Action?
+    ) -> VocableListCellAction {
+        VocableListCellAction(
+            systemImage: hasRecording ? "mic.fill" : "mic",
+            isEnabled: isEnabled,
+            accessibilityIdentifier: accessibilityIdentifier,
+            accessibilityLabel: hasRecording ? "change recording" : "add recording",
+            action: action
+        )
+    }
+
     static func == (lhs: VocableListCellAction, rhs: VocableListCellAction) -> Bool {
         lhs.isEnabled == rhs.isEnabled &&
         lhs.accessibilityIdentifier == rhs.accessibilityIdentifier &&

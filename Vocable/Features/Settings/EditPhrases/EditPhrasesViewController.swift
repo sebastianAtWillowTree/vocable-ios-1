@@ -236,9 +236,14 @@ private extension EditPhrasesViewController {
         UICollectionView.CellRegistration<VocableListCell, Phrase> { cell, _, phrase in
             let phraseIdentifier = phrase.objectID
             let hasImage = phrase.imageAssetID != nil
+            let hasRecording = phrase.audioAssetID != nil
 
             let photoAction = VocableListCellAction.photo(hasImage: hasImage) { [weak self] in
                 self?.handlePhotoActionTap(for: phraseIdentifier)
+            }
+
+            let recordAction = VocableListCellAction.record(hasRecording: hasRecording) { [weak self] in
+                self?.handleRecordActionTap(for: phraseIdentifier)
             }
 
             let deleteAction = VocableListCellAction.delete(
@@ -249,7 +254,7 @@ private extension EditPhrasesViewController {
 
             cell.contentConfiguration = VocableListContentConfiguration(
                 title: phrase.utterance ?? "",
-                actions: [photoAction, deleteAction],
+                actions: [photoAction, recordAction, deleteAction],
                 accessory: .disclosureIndicator(),
                 accessibilityIdentifier: .settings.editPhrases.editPhraseButton
             ) { [weak self] in
@@ -378,5 +383,114 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
         alert.addAction(.cancel(withTitle: cancelTitle))
         alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: confirm))
         present(alert, animated: true)
+    }
+}
+
+// MARK: - Recording flow
+
+extension EditPhrasesViewController: PhraseRecordingEditorDelegate {
+
+    fileprivate func handleRecordActionTap(for phraseID: NSManagedObjectID) {
+        let context = NSPersistentContainer.shared.viewContext
+        guard let store = try? AudioAssetStore() else { return }
+        let viewModel = PhraseRecordingEditorViewModel(
+            phraseID: phraseID,
+            context: context,
+            store: store,
+            delegate: self
+        )
+
+        switch viewModel.mode {
+        case .empty:
+            viewModel.requestAddOrChange()
+        case .filled:
+            presentExistingRecordingMenu(for: viewModel)
+        }
+    }
+
+    private func presentExistingRecordingMenu(for viewModel: PhraseRecordingEditorViewModel) {
+        let title = String(
+            localized: "phrase_editor.alert.recording_menu.title",
+            defaultValue: "Recording"
+        )
+        let changeTitle = String(
+            localized: "phrase_editor.alert.recording_menu.change",
+            defaultValue: "Re-record"
+        )
+        let removeTitle = String(
+            localized: "phrase_editor.alert.recording_menu.remove",
+            defaultValue: "Remove Recording"
+        )
+        let cancelTitle = String(
+            localized: "phrase_editor.alert.recording_menu.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(GazeableAlertAction(title: changeTitle, handler: {
+            viewModel.requestAddOrChange()
+        }))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: {
+            viewModel.requestRemove()
+        }))
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        present(alert, animated: true)
+    }
+
+    func phraseRecordingEditor(
+        _ editor: PhraseRecordingEditorViewModel,
+        requestsAddOrChangeRecordingFor phraseID: NSManagedObjectID
+    ) {
+        let recorder = VoiceRecorderViewController(
+            onSave: { [weak self] data in
+                self?.dismiss(animated: true) {
+                    self?.savePickedRecording(data, for: phraseID)
+                }
+            },
+            onCancel: { [weak self] in
+                self?.dismiss(animated: true)
+            }
+        )
+        present(recorder, animated: true)
+    }
+
+    func phraseRecordingEditor(
+        _ editor: PhraseRecordingEditorViewModel,
+        requestsRemovalConfirmationFor phraseID: NSManagedObjectID,
+        confirm: @escaping () -> Void
+    ) {
+        let title = String(
+            localized: "phrase_editor.alert.remove_recording.title",
+            defaultValue: "Remove this recording?"
+        )
+        let removeTitle = String(
+            localized: "phrase_editor.alert.remove_recording.confirm",
+            defaultValue: "Remove"
+        )
+        let cancelTitle = String(
+            localized: "phrase_editor.alert.remove_recording.cancel",
+            defaultValue: "Cancel"
+        )
+
+        let alert = GazeableAlertViewController(alertTitle: title)
+        alert.addAction(.cancel(withTitle: cancelTitle))
+        alert.addAction(GazeableAlertAction(title: removeTitle, style: .destructive, handler: confirm))
+        present(alert, animated: true)
+    }
+
+    private func savePickedRecording(_ data: Data, for phraseID: NSManagedObjectID) {
+        do {
+            let store = try AudioAssetStore()
+            let assetID = try store.save(data)
+            let context = NSPersistentContainer.shared.viewContext
+            let object = context.object(with: phraseID)
+            object.setValue(assetID, forKey: "audioAssetID")
+            // Default the toggle ON so newly recorded audio plays right away;
+            // the caregiver can flip it off via the prefersRecording toggle.
+            object.setValue(true, forKey: "prefersRecording")
+            try context.save()
+        } catch {
+            assertionFailure("Failed to save recording: \(error)")
+        }
     }
 }
