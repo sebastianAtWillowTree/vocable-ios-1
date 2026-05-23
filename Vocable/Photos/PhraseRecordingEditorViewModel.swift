@@ -62,6 +62,23 @@ final class PhraseRecordingEditorViewModel {
         return .empty
     }
 
+    /// Current state of the playback preference toggle.
+    var prefersRecording: Bool {
+        let object = context.object(with: phraseID)
+        return (object.value(forKey: "prefersRecording") as? Bool) ?? false
+    }
+
+    /// Flip the playback preference. Only meaningful when a recording
+    /// is attached; calling this with no recording is a no-op so the
+    /// toggle can't be left "on" while pointing at nothing.
+    func togglePrefersRecording() {
+        guard case .filled = mode else { return }
+        let object = context.object(with: phraseID)
+        let current = (object.value(forKey: "prefersRecording") as? Bool) ?? false
+        object.setValue(!current, forKey: "prefersRecording")
+        try? context.save()
+    }
+
     func requestAddOrChange() {
         delegate?.phraseRecordingEditor(self, requestsAddOrChangeRecordingFor: phraseID)
     }

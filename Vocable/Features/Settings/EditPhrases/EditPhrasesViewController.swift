@@ -425,8 +425,20 @@ extension EditPhrasesViewController: PhraseRecordingEditorDelegate {
             localized: "phrase_editor.alert.recording_menu.cancel",
             defaultValue: "Cancel"
         )
+        let toggleOnTitle = String(
+            localized: "phrase_editor.alert.recording_menu.use_recording_on",
+            defaultValue: "Use Recording: On"
+        )
+        let toggleOffTitle = String(
+            localized: "phrase_editor.alert.recording_menu.use_recording_off",
+            defaultValue: "Use Recording: Off"
+        )
 
         let alert = GazeableAlertViewController(alertTitle: title)
+        let toggleTitle = viewModel.prefersRecording ? toggleOnTitle : toggleOffTitle
+        alert.addAction(GazeableAlertAction(title: toggleTitle, handler: {
+            viewModel.togglePrefersRecording()
+        }))
         alert.addAction(GazeableAlertAction(title: changeTitle, handler: {
             viewModel.requestAddOrChange()
         }))

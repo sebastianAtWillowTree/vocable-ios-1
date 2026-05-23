@@ -77,6 +77,38 @@ final class PhraseRecordingEditorViewModelTests: XCTestCase {
         XCTAssertEqual(phrase.value(forKey: "prefersRecording") as? Bool, true)
     }
 
+    func test_togglePrefersRecording_flipsValue_andPersists() throws {
+        let phrase = makePhrase()
+        phrase.setValue("audio-1", forKey: "audioAssetID")
+        phrase.setValue(true, forKey: "prefersRecording")
+        try context.save()
+
+        let vm = PhraseRecordingEditorViewModel(
+            phraseID: phrase.objectID, context: context, store: store
+        )
+        XCTAssertTrue(vm.prefersRecording)
+
+        vm.togglePrefersRecording()
+        XCTAssertFalse(vm.prefersRecording)
+        XCTAssertEqual(phrase.value(forKey: "prefersRecording") as? Bool, false)
+        XCTAssertFalse(context.hasChanges)
+
+        vm.togglePrefersRecording()
+        XCTAssertTrue(vm.prefersRecording)
+    }
+
+    func test_togglePrefersRecording_isNoOp_whenNoRecording() throws {
+        let phrase = makePhrase()
+        try context.save()
+
+        let vm = PhraseRecordingEditorViewModel(
+            phraseID: phrase.objectID, context: context, store: store
+        )
+        XCTAssertFalse(vm.prefersRecording)
+        vm.togglePrefersRecording()
+        XCTAssertFalse(vm.prefersRecording, "Toggle must stay off when nothing is attached")
+    }
+
     func test_confirmRemove_clearsAudioAssetID_andResetsPrefersRecording() throws {
         let phrase = makePhrase()
         phrase.setValue("audio-1", forKey: "audioAssetID")
