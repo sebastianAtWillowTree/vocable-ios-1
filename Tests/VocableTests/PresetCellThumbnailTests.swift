@@ -105,6 +105,29 @@ final class PresetCellThumbnailTests: XCTestCase {
         XCTAssertFalse(cell.thumbnailImageView.isAccessibilityElement)
     }
 
+    // MARK: - VC4: recording accessibility hint
+
+    func test_configureRecordingAccessibility_setsHint_whenPlaysRecording() {
+        let cell = makePhraseCell()
+        cell.configureRecordingAccessibility(playsRecording: true)
+        XCTAssertNotNil(cell.accessibilityHint)
+        XCTAssertTrue(cell.accessibilityHint?.lowercased().contains("record") ?? false)
+    }
+
+    func test_configureRecordingAccessibility_clearsHint_whenNotPlayingRecording() {
+        let cell = makePhraseCell()
+        cell.configureRecordingAccessibility(playsRecording: true)
+        cell.configureRecordingAccessibility(playsRecording: false)
+        XCTAssertNil(cell.accessibilityHint)
+    }
+
+    func test_prepareForReuse_clearsRecordingAccessibilityHint() {
+        let cell = makePhraseCell()
+        cell.configureRecordingAccessibility(playsRecording: true)
+        cell.prepareForReuse()
+        XCTAssertNil(cell.accessibilityHint)
+    }
+
     // MARK: - Helpers
 
     private func makePhraseCell() -> PresetItemCollectionViewCell {

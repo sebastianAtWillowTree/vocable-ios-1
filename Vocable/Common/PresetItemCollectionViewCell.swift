@@ -101,6 +101,21 @@ class PresetItemCollectionViewCell: VocableCollectionViewCell, HighlightableCont
         ])
     }
 
+    /// Sets the cell's accessibility hint based on whether a recorded
+    /// voice is going to play instead of TTS. When a recording is
+    /// active, VoiceOver announces "recorded voice available" so the
+    /// caregiver/user knows tapping will play the captured audio.
+    func configureRecordingAccessibility(playsRecording: Bool) {
+        if playsRecording {
+            accessibilityHint = String(
+                localized: "phrase_cell.accessibility.recording_available",
+                defaultValue: "Recorded voice available"
+            )
+        } else {
+            accessibilityHint = nil
+        }
+    }
+
     /// Configures (or clears) the thumbnail shown above the text label.
     /// The cell's outer frame height is unaffected — the text region
     /// shrinks vertically when a thumbnail is present.
@@ -136,6 +151,7 @@ class PresetItemCollectionViewCell: VocableCollectionViewCell, HighlightableCont
         thumbnailImageView.isHidden = true
         textTopToThumbnailBottomConstraint.isActive = false
         textTopToContentTopConstraint.isActive = true
+        accessibilityHint = nil
     }
 
     func setup(title: String, with image: UIImage? = nil) {

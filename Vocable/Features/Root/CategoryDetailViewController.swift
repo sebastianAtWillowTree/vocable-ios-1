@@ -134,6 +134,8 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
             if let loader = thumbnailLoader {
                 cell?.configureThumbnail(assetID: phrase.imageAssetID, loader: loader)
             }
+            let playsRecording = (phrase.audioAssetID != nil) && phrase.prefersRecording
+            cell?.configureRecordingAccessibility(playsRecording: playsRecording)
         case .addNewPhrase:
             let cell = cell as? AddPhraseCollectionViewCell
                 cell?.accessibilityID = .root.addPhraseButton
