@@ -120,6 +120,9 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         return ThumbnailLoader(store: store)
     }()
 
+    private lazy var audioStore: AudioAssetStoring? = try? AudioAssetStore()
+    private lazy var audioPlayback: AudioPlaybackServicing = AudioPlaybackService()
+
     private func configureCell(_ cell: UICollectionViewCell, for item: CategoryItem, at indexPath: IndexPath) {
         switch item {
         case .persistedPhrase(let objectId):
@@ -203,7 +206,19 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
                     try? context.save()
                 }
 
-                speak(utterance, forItemAt: indexPath)
+                let assetID = phrase.audioAssetID
+                let prefersRecording = phrase.prefersRecording
+                DispatchQueue.main.async {
+                    if prefersRecording,
+                       let assetID,
+                       let store = self.audioStore,
+                       let url = store.url(for: assetID),
+                       (try? self.audioPlayback.play(url: url)) != nil {
+                        // Played the recording — skip TTS.
+                        return
+                    }
+                    self.speak(utterance, forItemAt: indexPath)
+                }
             }
         case .addNewPhrase:
             addNewPhraseButtonSelected()
