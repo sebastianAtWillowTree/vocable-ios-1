@@ -115,6 +115,9 @@
 		E2A0B1C2D3E4F50617283904 /* AudioLifecycleObserverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A0B1C2D3E4F50617283903 /* AudioLifecycleObserverTests.swift */; };
 		E3A0B1C2D3E4F50617283902 /* AudioCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A0B1C2D3E4F50617283901 /* AudioCaptureService.swift */; };
 		E3A0B1C2D3E4F50617283904 /* RecordingConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A0B1C2D3E4F50617283903 /* RecordingConfigurationTests.swift */; };
+		E4A0B1C2D3E4F50617283902 /* VoiceRecorderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A0B1C2D3E4F50617283901 /* VoiceRecorderViewModel.swift */; };
+		E4A0B1C2D3E4F50617283904 /* VoiceRecorderViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A0B1C2D3E4F50617283903 /* VoiceRecorderViewController.swift */; };
+		E4A0B1C2D3E4F50617283906 /* VoiceRecorderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A0B1C2D3E4F50617283905 /* VoiceRecorderViewModelTests.swift */; };
 		6B1086732463662C00E729A8 /* v2_to_v3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */; };
 		6B14DC732419590E0050C287 /* OutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B14DC722419590E0050C287 /* OutputTextView.swift */; };
 		6B17CD8023EA045D0050BCB8 /* ViewControllerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B17CD7F23EA045D0050BCB8 /* ViewControllerWrapperView.swift */; };
@@ -491,6 +494,9 @@
 		E2A0B1C2D3E4F50617283903 /* AudioLifecycleObserverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLifecycleObserverTests.swift; sourceTree = "<group>"; };
 		E3A0B1C2D3E4F50617283901 /* AudioCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureService.swift; sourceTree = "<group>"; };
 		E3A0B1C2D3E4F50617283903 /* RecordingConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingConfigurationTests.swift; sourceTree = "<group>"; };
+		E4A0B1C2D3E4F50617283901 /* VoiceRecorderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderViewModel.swift; sourceTree = "<group>"; };
+		E4A0B1C2D3E4F50617283903 /* VoiceRecorderViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderViewController.swift; sourceTree = "<group>"; };
+		E4A0B1C2D3E4F50617283905 /* VoiceRecorderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderViewModelTests.swift; sourceTree = "<group>"; };
 		6B1086712463102F00E729A8 /* Phrases v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v3.xcdatamodel"; sourceTree = "<group>"; };
 		6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = v2_to_v3.xcmappingmodel; sourceTree = "<group>"; };
 		6B14DC722419590E0050C287 /* OutputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTextView.swift; sourceTree = "<group>"; };
@@ -810,6 +816,8 @@
 				E1A0B1C2D3E4F50617283903 /* AudioAssetStore.swift */,
 				E2A0B1C2D3E4F50617283901 /* AudioLifecycleObserver.swift */,
 				E3A0B1C2D3E4F50617283901 /* AudioCaptureService.swift */,
+				E4A0B1C2D3E4F50617283901 /* VoiceRecorderViewModel.swift */,
+				E4A0B1C2D3E4F50617283903 /* VoiceRecorderViewController.swift */,
 			);
 			path = Photos;
 			sourceTree = "<group>";
@@ -974,6 +982,7 @@
 				E1A0B1C2D3E4F50617283905 /* AudioAssetStoreTests.swift */,
 				E2A0B1C2D3E4F50617283903 /* AudioLifecycleObserverTests.swift */,
 				E3A0B1C2D3E4F50617283903 /* RecordingConfigurationTests.swift */,
+				E4A0B1C2D3E4F50617283905 /* VoiceRecorderViewModelTests.swift */,
 				54D3C41823E37CD40061EF47 /* Info.plist */,
 			);
 			path = VocableTests;
@@ -1721,6 +1730,8 @@
 				E1A0B1C2D3E4F50617283904 /* AudioAssetStore.swift in Sources */,
 				E2A0B1C2D3E4F50617283902 /* AudioLifecycleObserver.swift in Sources */,
 				E3A0B1C2D3E4F50617283902 /* AudioCaptureService.swift in Sources */,
+				E4A0B1C2D3E4F50617283902 /* VoiceRecorderViewModel.swift in Sources */,
+				E4A0B1C2D3E4F50617283904 /* VoiceRecorderViewController.swift in Sources */,
 				B2BC6CA92BD94F5A00D459F6 /* VocableListContentConfiguration+VoiceProfileItem.swift in Sources */,
 				B2971A152C762C8F006801F8 /* UICollectionDiffableDatasource+Mutations.swift in Sources */,
 				B291D12A2C5AE790006E9FA6 /* KeyboardSuggestionAnimationContainer.swift in Sources */,
@@ -2042,6 +2053,7 @@
 				E1A0B1C2D3E4F50617283906 /* AudioAssetStoreTests.swift in Sources */,
 				E2A0B1C2D3E4F50617283904 /* AudioLifecycleObserverTests.swift in Sources */,
 				E3A0B1C2D3E4F50617283904 /* RecordingConfigurationTests.swift in Sources */,
+				E4A0B1C2D3E4F50617283906 /* VoiceRecorderViewModelTests.swift in Sources */,
 				6B8D3C1F282C288C00DDB9B7 /* AccessibilityID+Settings+EditPhrases.swift in Sources */,
 				6BE02F6D2816EF88002CCCED /* Environment.swift in Sources */,
 				6B8D3C2C282C2B5E00DDB9B7 /* XCUIElementQuery+AccessibilityID.swift in Sources */,
