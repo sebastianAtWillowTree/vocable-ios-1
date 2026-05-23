@@ -39,6 +39,21 @@ final class InfoPlistUsageStringTests: XCTestCase {
         )
     }
 
+    func test_NSMicrophoneUsageDescription_explainsVoiceRecordingUse() throws {
+        let value = try unwrappedInfoString(forKey: "NSMicrophoneUsageDescription")
+        // The original purpose (listening mode) and the new purpose (voice
+        // recording for cards) must both be covered per App Store guidance.
+        let lower = value.lowercased()
+        XCTAssertTrue(
+            lower.contains("listening") || lower.contains("transcrib"),
+            "Microphone usage description should still cover listening mode"
+        )
+        XCTAssertTrue(
+            lower.contains("record") || lower.contains("voice") || lower.contains("cadence"),
+            "Microphone usage description should mention voice recording for cards"
+        )
+    }
+
     // MARK: - Helpers
 
     private func unwrappedInfoString(forKey key: String) throws -> String {

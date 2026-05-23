@@ -256,7 +256,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vocable uses the microphone only when listening mode is enabled. Vocable transcribes audio into text; it is not stored or transmitted except when the user chooses to share this information anonymously with developers to help improve listening mode."
+            "value": "Vocable uses the microphone only when listening mode is enabled. Vocable transcribes audio into text; it is not stored or transmitted except when the user chooses to share this information anonymously with developers to help improve listening mode. Vocable can also use the microphone to record short voice samples that caregivers attach to communication cards, so playback uses the actual cadence and intonation of a chosen speaker rather than synthesized speech."
           }
         },
         "fr": {
