@@ -18,15 +18,18 @@ struct AppResetController {
     private let persistentContainer: NSPersistentContainer
     private let userDefaults: UserDefaults
     private let imageAssetStore: ImageAssetStoring?
+    private let audioAssetStore: AudioAssetStoring?
 
     init(
         persistentContainer: NSPersistentContainer = .shared,
         userDefaults: UserDefaults = .standard,
-        imageAssetStore: ImageAssetStoring? = nil
+        imageAssetStore: ImageAssetStoring? = nil,
+        audioAssetStore: AudioAssetStoring? = nil
     ) {
         self.persistentContainer = persistentContainer
         self.userDefaults = userDefaults
         self.imageAssetStore = imageAssetStore ?? (try? ImageAssetStore())
+        self.audioAssetStore = audioAssetStore ?? (try? AudioAssetStore())
     }
 
     func performReset(withPresets presets: PresetData? = TextPresets.presets) -> Bool {
@@ -36,6 +39,7 @@ struct AppResetController {
         }
 
         try? imageAssetStore?.deleteAll()
+        try? audioAssetStore?.deleteAll()
 
         let migrationController = PersistenceMigrationController(persistentContainer: persistentContainer)
 
