@@ -187,7 +187,10 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         if phrase.isUserGenerated {
             context.delete(phrase)
         } else {
-            phrase.isUserRemoved = true
+            // Soft-delete also detaches any photo/audio so the lifecycle
+            // observers can reclaim the underlying files. Otherwise the
+            // hidden row still references them and they leak.
+            phrase.softDelete()
         }
 
         do {
