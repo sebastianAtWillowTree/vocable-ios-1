@@ -16,9 +16,13 @@ protocol AudioPlaybackServicing: AnyObject {
     func stop()
 }
 
-final class AudioPlaybackService: AudioPlaybackServicing {
+final class AudioPlaybackService: NSObject, AudioPlaybackServicing, AVAudioPlayerDelegate {
 
     private var player: AVAudioPlayer?
+
+    override init() {
+        super.init()
+    }
 
     var isPlaying: Bool { player?.isPlaying ?? false }
 
@@ -26,10 +30,14 @@ final class AudioPlaybackService: AudioPlaybackServicing {
         player?.stop()
 
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playback, mode: .default, options: [])
+        // Match AudioEngineController's playback category/mode so the
+        // listening-mode path doesn't have to re-fight the session
+        // after we play a recording.
+        try session.setCategory(.playback, mode: .spokenAudio, options: .duckOthers)
         try session.setActive(true, options: [])
 
         let next = try AVAudioPlayer(contentsOf: url)
+        next.delegate = self
         next.prepareToPlay()
         next.play()
         player = next
@@ -38,5 +46,29 @@ final class AudioPlaybackService: AudioPlaybackServicing {
     func stop() {
         player?.stop()
         player = nil
+        deactivateSession()
+    }
+
+    // MARK: - AVAudioPlayerDelegate
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        // Release the audio session so other audio (music, TTS,
+        // listening mode) can resume immediately.
+        self.player = nil
+        deactivateSession()
+    }
+
+    func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        self.player = nil
+        deactivateSession()
+    }
+
+    // MARK: - Helpers
+
+    private func deactivateSession() {
+        try? AVAudioSession.sharedInstance().setActive(
+            false,
+            options: .notifyOthersOnDeactivation
+        )
     }
 }

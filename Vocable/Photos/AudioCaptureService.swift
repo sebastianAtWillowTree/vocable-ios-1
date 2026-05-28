@@ -68,16 +68,25 @@ enum AudioCaptureError: Error {
 }
 
 /// Production implementation backed by AVAudioRecorder.
-/// Not unit-tested directly; relies on AVAudioSession which only
-/// behaves correctly on a device or with a configured simulator audio
-/// session. The contract is exercised through AudioCaptureServicing
-/// fakes at higher layers.
-final class AudioCaptureService: AudioCaptureServicing {
+///
+/// Audio-session settings (.playAndRecord, .spokenAudio,
+/// [.defaultToSpeaker]) match the existing AudioEngineController
+/// so the two systems don't fight each other when listening mode
+/// and recording overlap. Every setActive(true) is paired with a
+/// setActive(false, options: .notifyOthersOnDeactivation) on
+/// stop/cancel so other audio resumes when we're done.
+///
+/// Adopts AVAudioRecorderDelegate to surface encode errors that
+/// would otherwise be silent. The file is finalized by the time
+/// stop() returns (Apple guarantee), but the delegate lets us log
+/// or react to failures.
+final class AudioCaptureService: NSObject, AudioCaptureServicing, AVAudioRecorderDelegate {
 
     private let configuration: RecordingConfiguration
     private let fileManager: FileManager
     private var recorder: AVAudioRecorder?
     private var outputURL: URL?
+    private var encodeError: Error?
 
     init(
         configuration: RecordingConfiguration = .defaultM4A,
@@ -85,6 +94,7 @@ final class AudioCaptureService: AudioCaptureServicing {
     ) {
         self.configuration = configuration
         self.fileManager = fileManager
+        super.init()
     }
 
     var currentInputLevelDB: Float {
@@ -98,21 +108,29 @@ final class AudioCaptureService: AudioCaptureServicing {
     }
 
     func prepare() throws -> URL {
+        // Defensive: a previous prepare() without stop()/cancel() left
+        // an orphan temp file behind. Clear it before we overwrite.
+        discardOutputFile()
+
         let directory = fileManager.temporaryDirectory
             .appendingPathComponent("AudioCapture")
         try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("\(UUID().uuidString).m4a")
 
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+        // Match AudioEngineController's category/mode so we don't fight
+        // listening-mode setup if the user oscillates between features.
+        try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.defaultToSpeaker])
         try session.setActive(true, options: [])
 
         let recorder = try AVAudioRecorder(url: url, settings: configuration.avAudioRecorderSettings)
+        recorder.delegate = self
         recorder.isMeteringEnabled = true
         recorder.prepareToRecord()
 
         self.recorder = recorder
         self.outputURL = url
+        self.encodeError = nil
         return url
     }
 
@@ -126,8 +144,14 @@ final class AudioCaptureService: AudioCaptureServicing {
             throw AudioCaptureError.notPrepared
         }
         recorder.stop()
-        defer { discardOutputFile() }
+        defer {
+            deactivateSession()
+            discardOutputFile()
+        }
 
+        if let encodeError {
+            throw encodeError
+        }
         let data = try Data(contentsOf: outputURL)
         guard !data.isEmpty else { throw AudioCaptureError.missingOutputData }
         return data
@@ -135,7 +159,35 @@ final class AudioCaptureService: AudioCaptureServicing {
 
     func cancel() {
         recorder?.stop()
+        deactivateSession()
         discardOutputFile()
+    }
+
+    // MARK: - AVAudioRecorderDelegate
+
+    func audioRecorderDidFinishRecording(
+        _ recorder: AVAudioRecorder,
+        successfully flag: Bool
+    ) {
+        if !flag {
+            encodeError = AudioCaptureError.missingOutputData
+        }
+    }
+
+    func audioRecorderEncodeErrorDidOccur(
+        _ recorder: AVAudioRecorder,
+        error: Error?
+    ) {
+        encodeError = error ?? AudioCaptureError.missingOutputData
+    }
+
+    // MARK: - Helpers
+
+    private func deactivateSession() {
+        try? AVAudioSession.sharedInstance().setActive(
+            false,
+            options: .notifyOthersOnDeactivation
+        )
     }
 
     private func discardOutputFile() {
