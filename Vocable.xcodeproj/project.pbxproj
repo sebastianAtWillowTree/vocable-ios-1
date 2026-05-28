@@ -134,6 +134,7 @@
 		EBA0B1C2D3E4F50617283A06 /* CartoonGeneratingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA0B1C2D3E4F50617283A05 /* CartoonGeneratingTests.swift */; };
 		ECA0B1C2D3E4F50617283A02 /* CartoonifyFlowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */; };
 		ECA0B1C2D3E4F50617283A04 /* CartoonifyFlowCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA0B1C2D3E4F50617283A03 /* CartoonifyFlowCoordinatorTests.swift */; };
+		EDA0B1C2D3E4F50617283A02 /* CartoonifyFlowViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA0B1C2D3E4F50617283A01 /* CartoonifyFlowViewController.swift */; };
 		6B1086732463662C00E729A8 /* v2_to_v3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */; };
 		6B14DC732419590E0050C287 /* OutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B14DC722419590E0050C287 /* OutputTextView.swift */; };
 		6B17CD8023EA045D0050BCB8 /* ViewControllerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B17CD7F23EA045D0050BCB8 /* ViewControllerWrapperView.swift */; };
@@ -529,6 +530,7 @@
 		EBA0B1C2D3E4F50617283A05 /* CartoonGeneratingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonGeneratingTests.swift; sourceTree = "<group>"; };
 		ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyFlowCoordinator.swift; sourceTree = "<group>"; };
 		ECA0B1C2D3E4F50617283A03 /* CartoonifyFlowCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyFlowCoordinatorTests.swift; sourceTree = "<group>"; };
+		EDA0B1C2D3E4F50617283A01 /* CartoonifyFlowViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyFlowViewController.swift; sourceTree = "<group>"; };
 		6B1086712463102F00E729A8 /* Phrases v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v3.xcdatamodel"; sourceTree = "<group>"; };
 		6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = v2_to_v3.xcmappingmodel; sourceTree = "<group>"; };
 		6B14DC722419590E0050C287 /* OutputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTextView.swift; sourceTree = "<group>"; };
@@ -858,6 +860,7 @@
 				EBA0B1C2D3E4F50617283A01 /* CartoonGenerating.swift */,
 				EBA0B1C2D3E4F50617283A03 /* ImagePlaygroundCartoonGenerator.swift */,
 				ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */,
+				EDA0B1C2D3E4F50617283A01 /* CartoonifyFlowViewController.swift */,
 			);
 			path = Photos;
 			sourceTree = "<group>";
@@ -1788,6 +1791,7 @@
 				EBA0B1C2D3E4F50617283A02 /* CartoonGenerating.swift in Sources */,
 				EBA0B1C2D3E4F50617283A04 /* ImagePlaygroundCartoonGenerator.swift in Sources */,
 				ECA0B1C2D3E4F50617283A02 /* CartoonifyFlowCoordinator.swift in Sources */,
+				EDA0B1C2D3E4F50617283A02 /* CartoonifyFlowViewController.swift in Sources */,
 				B2BC6CA92BD94F5A00D459F6 /* VocableListContentConfiguration+VoiceProfileItem.swift in Sources */,
 				B2971A152C762C8F006801F8 /* UICollectionDiffableDatasource+Mutations.swift in Sources */,
 				B291D12A2C5AE790006E9FA6 /* KeyboardSuggestionAnimationContainer.swift in Sources */,

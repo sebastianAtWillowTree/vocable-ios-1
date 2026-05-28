@@ -25,7 +25,7 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         gate: ExperimentalFeatureGate(),
         picker: AlertVariantPicker(),
         subjectLifter: VisionSubjectLiftService(),
-        stylizer: ImagePlaygroundStylizer(),
+        cartoonifyApplier: CartoonifyApplier(),
         progress: AlertEnhancementProgress()
     )
 
@@ -352,19 +352,41 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
     }
 
     private func runEnhanceAndSave(_ image: UIImage, for phraseID: NSManagedObjectID) {
-        enhanceCoordinator.enhance(image: image, from: self) { [weak self] enhanced in
-            guard let enhanced else { return }
-            self?.savePickedImage(enhanced, for: phraseID)
+        // Pre-fill cartoon prompt from the phrase if one was saved
+        // previously so caregivers can iterate without retyping.
+        let context = NSPersistentContainer.shared.viewContext
+        let initialPrompt = (context.object(with: phraseID) as? Phrase)?.cartoonPrompt
+
+        enhanceCoordinator.enhance(
+            image: image,
+            initialCartoonPrompt: initialPrompt,
+            from: self
+        ) { [weak self] outcome in
+            guard let self, let outcome else { return }
+            self.savePickedImage(
+                outcome.image,
+                for: phraseID,
+                cartoonPrompt: outcome.cartoonPrompt
+            )
         }
     }
 
-    private func savePickedImage(_ image: UIImage, for phraseID: NSManagedObjectID) {
+    private func savePickedImage(
+        _ image: UIImage,
+        for phraseID: NSManagedObjectID,
+        cartoonPrompt: String? = nil
+    ) {
         do {
             let store = try ImageAssetStore()
             let assetID = try store.save(image)
             let context = NSPersistentContainer.shared.viewContext
             let object = context.object(with: phraseID)
             object.setValue(assetID, forKey: "imageAssetID")
+            // CC6: persist the cartoon prompt iff the user went through
+            // the cartoonify flow. Clear it on non-cartoon replaces so a
+            // phrase never carries a stale prompt that doesn't match its
+            // current photo.
+            object.setValue(cartoonPrompt, forKey: "cartoonPrompt")
             try context.save()
         } catch {
             assertionFailure("Failed to save picked photo: \(error)")

@@ -68,8 +68,8 @@ struct AlertVariantPicker: PhotoEnhanceVariantPickerPresenting {
             return String(localized: "photo_enhance.variant.original", defaultValue: "Original")
         case .subjectLift:
             return String(localized: "photo_enhance.variant.subject_lift", defaultValue: "Subject Lift")
-        case .stylize:
-            return String(localized: "photo_enhance.variant.stylize", defaultValue: "Stylize")
+        case .cartoonify:
+            return String(localized: "photo_enhance.variant.cartoonify", defaultValue: "Cartoon (Custom)")
         }
     }
 }
@@ -153,24 +153,47 @@ final class VisionSubjectLiftService: SubjectLiftPerforming {
     }
 }
 
-// MARK: - Image Playground stylize (iOS 18.1+, AI device)
+// MARK: - Cartoonify applier (iOS 18.1+, caregiver-described)
 
-/// Placeholder stylizer. Until the project pins an SDK that ships the
-/// ImagePlayground framework, this implementation reports unavailability
-/// at runtime and the coordinator falls back to Original. The protocol
-/// seam keeps the call sites stable so the real adapter can land later
-/// without touching anything else.
-final class ImagePlaygroundStylizer: ImagePlaygroundStylizing {
+/// Production CartoonifyApplying — constructs a CartoonifyFlowCoordinator
+/// backed by ImagePlaygroundCartoonGenerator and presents the multi-step
+/// flow VC. When the user accepts a result, the outcome carries both
+/// the generated image AND the prompt that produced it so callers can
+/// persist the prompt on the Phrase for future re-entry.
+final class CartoonifyApplier: CartoonifyApplying {
 
-    func performStylize(
+    private let generator: CartoonGenerating
+
+    init(generator: CartoonGenerating = ImagePlaygroundCartoonGenerator()) {
+        self.generator = generator
+    }
+
+    func performCartoonify(
         on image: UIImage,
+        initialPrompt: String?,
         from presenter: UIViewController,
-        completion: @escaping (UIImage?) -> Void
+        completion: @escaping (CartoonifyOutcome?) -> Void
     ) {
-        // Even when iOS 18.1 is available at runtime, this build may not
-        // link the ImagePlayground framework (older Xcode SDK). We return
-        // nil and the coordinator falls back to the original.
-        completion(nil)
+        var flowVC: UIViewController?
+
+        let coordinator = CartoonifyFlowCoordinator(
+            sourceImage: image,
+            initialPrompt: initialPrompt,
+            generator: generator,
+            onSave: { resultImage, prompt in
+                flowVC?.dismiss(animated: true) {
+                    completion(CartoonifyOutcome(image: resultImage, prompt: prompt))
+                }
+            },
+            onCancel: {
+                flowVC?.dismiss(animated: true) {
+                    completion(nil)
+                }
+            }
+        )
+        let vc = CartoonifyFlowViewController(coordinator: coordinator)
+        flowVC = vc
+        presenter.present(vc, animated: true)
     }
 }
 

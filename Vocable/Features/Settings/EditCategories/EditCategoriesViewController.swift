@@ -25,7 +25,9 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
         gate: ExperimentalFeatureGate(),
         picker: AlertVariantPicker(),
         subjectLifter: VisionSubjectLiftService(),
-        stylizer: ImagePlaygroundStylizer(),
+        // Cartoonify is phrase-only by design — category authoring
+        // doesn't get the variant.
+        cartoonifyApplier: nil,
         progress: AlertEnhancementProgress()
     )
 
@@ -395,9 +397,9 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
     }
 
     private func runEnhanceAndSave(_ image: UIImage, for categoryID: NSManagedObjectID) {
-        enhanceCoordinator.enhance(image: image, from: self) { [weak self] enhanced in
-            guard let enhanced else { return }
-            self?.savePickedImage(enhanced, for: categoryID)
+        enhanceCoordinator.enhance(image: image, from: self) { [weak self] outcome in
+            guard let outcome else { return }
+            self?.savePickedImage(outcome.image, for: categoryID)
         }
     }
 
