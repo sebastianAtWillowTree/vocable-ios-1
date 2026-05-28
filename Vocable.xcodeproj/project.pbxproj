@@ -132,6 +132,8 @@
 		EBA0B1C2D3E4F50617283A02 /* CartoonGenerating.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA0B1C2D3E4F50617283A01 /* CartoonGenerating.swift */; };
 		EBA0B1C2D3E4F50617283A04 /* ImagePlaygroundCartoonGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA0B1C2D3E4F50617283A03 /* ImagePlaygroundCartoonGenerator.swift */; };
 		EBA0B1C2D3E4F50617283A06 /* CartoonGeneratingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA0B1C2D3E4F50617283A05 /* CartoonGeneratingTests.swift */; };
+		ECA0B1C2D3E4F50617283A02 /* CartoonifyFlowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */; };
+		ECA0B1C2D3E4F50617283A04 /* CartoonifyFlowCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA0B1C2D3E4F50617283A03 /* CartoonifyFlowCoordinatorTests.swift */; };
 		6B1086732463662C00E729A8 /* v2_to_v3.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */; };
 		6B14DC732419590E0050C287 /* OutputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B14DC722419590E0050C287 /* OutputTextView.swift */; };
 		6B17CD8023EA045D0050BCB8 /* ViewControllerWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B17CD7F23EA045D0050BCB8 /* ViewControllerWrapperView.swift */; };
@@ -525,6 +527,8 @@
 		EBA0B1C2D3E4F50617283A01 /* CartoonGenerating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonGenerating.swift; sourceTree = "<group>"; };
 		EBA0B1C2D3E4F50617283A03 /* ImagePlaygroundCartoonGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePlaygroundCartoonGenerator.swift; sourceTree = "<group>"; };
 		EBA0B1C2D3E4F50617283A05 /* CartoonGeneratingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonGeneratingTests.swift; sourceTree = "<group>"; };
+		ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyFlowCoordinator.swift; sourceTree = "<group>"; };
+		ECA0B1C2D3E4F50617283A03 /* CartoonifyFlowCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyFlowCoordinatorTests.swift; sourceTree = "<group>"; };
 		6B1086712463102F00E729A8 /* Phrases v3.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Phrases v3.xcdatamodel"; sourceTree = "<group>"; };
 		6B1086722463662C00E729A8 /* v2_to_v3.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = v2_to_v3.xcmappingmodel; sourceTree = "<group>"; };
 		6B14DC722419590E0050C287 /* OutputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTextView.swift; sourceTree = "<group>"; };
@@ -853,6 +857,7 @@
 				E7A0B1C2D3E4F50617283903 /* AudioEnhanceServices.swift */,
 				EBA0B1C2D3E4F50617283A01 /* CartoonGenerating.swift */,
 				EBA0B1C2D3E4F50617283A03 /* ImagePlaygroundCartoonGenerator.swift */,
+				ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */,
 			);
 			path = Photos;
 			sourceTree = "<group>";
@@ -1025,6 +1030,7 @@
 				E9A0B1C2D3E4F50617283903 /* PhraseSoftDeleteTests.swift */,
 				EAA0B1C2D3E4F50617283A02 /* PhrasesV7MigrationTests.swift */,
 				EBA0B1C2D3E4F50617283A05 /* CartoonGeneratingTests.swift */,
+				ECA0B1C2D3E4F50617283A03 /* CartoonifyFlowCoordinatorTests.swift */,
 				54D3C41823E37CD40061EF47 /* Info.plist */,
 			);
 			path = VocableTests;
@@ -1781,6 +1787,7 @@
 				E7A0B1C2D3E4F50617283904 /* AudioEnhanceServices.swift in Sources */,
 				EBA0B1C2D3E4F50617283A02 /* CartoonGenerating.swift in Sources */,
 				EBA0B1C2D3E4F50617283A04 /* ImagePlaygroundCartoonGenerator.swift in Sources */,
+				ECA0B1C2D3E4F50617283A02 /* CartoonifyFlowCoordinator.swift in Sources */,
 				B2BC6CA92BD94F5A00D459F6 /* VocableListContentConfiguration+VoiceProfileItem.swift in Sources */,
 				B2971A152C762C8F006801F8 /* UICollectionDiffableDatasource+Mutations.swift in Sources */,
 				B291D12A2C5AE790006E9FA6 /* KeyboardSuggestionAnimationContainer.swift in Sources */,
@@ -2111,6 +2118,7 @@
 				E9A0B1C2D3E4F50617283904 /* PhraseSoftDeleteTests.swift in Sources */,
 				EAA0B1C2D3E4F50617283A03 /* PhrasesV7MigrationTests.swift in Sources */,
 				EBA0B1C2D3E4F50617283A06 /* CartoonGeneratingTests.swift in Sources */,
+				ECA0B1C2D3E4F50617283A04 /* CartoonifyFlowCoordinatorTests.swift in Sources */,
 				6B8D3C1F282C288C00DDB9B7 /* AccessibilityID+Settings+EditPhrases.swift in Sources */,
 				6BE02F6D2816EF88002CCCED /* Environment.swift in Sources */,
 				6B8D3C2C282C2B5E00DDB9B7 /* XCUIElementQuery+AccessibilityID.swift in Sources */,
