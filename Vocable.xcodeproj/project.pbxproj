@@ -393,6 +393,12 @@
 		EFA0B1C2D3E4F50617283A04 /* CameraExclusiveCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFA0B1C2D3E4F50617283A03 /* CameraExclusiveCoordinatorTests.swift */; };
 		F0A0B1C2D3E4F50617283A02 /* AudioExclusiveCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A0B1C2D3E4F50617283A01 /* AudioExclusiveCoordinator.swift */; };
 		F0A0B1C2D3E4F50617283A04 /* AudioExclusiveCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A0B1C2D3E4F50617283A03 /* AudioExclusiveCoordinatorTests.swift */; };
+		F1A0B1C2D3E4F50617283A02 /* PromptSubjectAligning.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A0B1C2D3E4F50617283A01 /* PromptSubjectAligning.swift */; };
+		F1A0B1C2D3E4F50617283A04 /* VisionNLPAligner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A0B1C2D3E4F50617283A03 /* VisionNLPAligner.swift */; };
+		F1A0B1C2D3E4F50617283A06 /* VisionNLPAlignerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A0B1C2D3E4F50617283A05 /* VisionNLPAlignerTests.swift */; };
+		F2A0B1C2D3E4F50617283A02 /* CartoonifyPreflightCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A0B1C2D3E4F50617283A01 /* CartoonifyPreflightCoordinator.swift */; };
+		F2A0B1C2D3E4F50617283A04 /* CartoonifyPreflightCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A0B1C2D3E4F50617283A03 /* CartoonifyPreflightCoordinatorTests.swift */; };
+		F3A0B1C2D3E4F50617283A02 /* CartoonifyPreflightViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A0B1C2D3E4F50617283A01 /* CartoonifyPreflightViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -769,6 +775,12 @@
 		EFA0B1C2D3E4F50617283A03 /* CameraExclusiveCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraExclusiveCoordinatorTests.swift; sourceTree = "<group>"; };
 		F0A0B1C2D3E4F50617283A01 /* AudioExclusiveCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioExclusiveCoordinator.swift; sourceTree = "<group>"; };
 		F0A0B1C2D3E4F50617283A03 /* AudioExclusiveCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioExclusiveCoordinatorTests.swift; sourceTree = "<group>"; };
+		F1A0B1C2D3E4F50617283A01 /* PromptSubjectAligning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSubjectAligning.swift; sourceTree = "<group>"; };
+		F1A0B1C2D3E4F50617283A03 /* VisionNLPAligner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionNLPAligner.swift; sourceTree = "<group>"; };
+		F1A0B1C2D3E4F50617283A05 /* VisionNLPAlignerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionNLPAlignerTests.swift; sourceTree = "<group>"; };
+		F2A0B1C2D3E4F50617283A01 /* CartoonifyPreflightCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyPreflightCoordinator.swift; sourceTree = "<group>"; };
+		F2A0B1C2D3E4F50617283A03 /* CartoonifyPreflightCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyPreflightCoordinatorTests.swift; sourceTree = "<group>"; };
+		F3A0B1C2D3E4F50617283A01 /* CartoonifyPreflightViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartoonifyPreflightViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1013,6 +1025,8 @@
 				EEA0B1C2D3E4F50617283A03 /* PhraseCartoonPromptDefaultsTests.swift */,
 				EFA0B1C2D3E4F50617283A03 /* CameraExclusiveCoordinatorTests.swift */,
 				F0A0B1C2D3E4F50617283A03 /* AudioExclusiveCoordinatorTests.swift */,
+				F1A0B1C2D3E4F50617283A05 /* VisionNLPAlignerTests.swift */,
+				F2A0B1C2D3E4F50617283A03 /* CartoonifyPreflightCoordinatorTests.swift */,
 				54D3C41823E37CD40061EF47 /* Info.plist */,
 			);
 			path = VocableTests;
@@ -1600,6 +1614,10 @@
 				EBA0B1C2D3E4F50617283A03 /* ImagePlaygroundCartoonGenerator.swift */,
 				ECA0B1C2D3E4F50617283A01 /* CartoonifyFlowCoordinator.swift */,
 				EDA0B1C2D3E4F50617283A01 /* CartoonifyFlowViewController.swift */,
+				F1A0B1C2D3E4F50617283A01 /* PromptSubjectAligning.swift */,
+				F1A0B1C2D3E4F50617283A03 /* VisionNLPAligner.swift */,
+				F2A0B1C2D3E4F50617283A01 /* CartoonifyPreflightCoordinator.swift */,
+				F3A0B1C2D3E4F50617283A01 /* CartoonifyPreflightViewController.swift */,
 			);
 			path = Photos;
 			sourceTree = "<group>";
@@ -1810,6 +1828,10 @@
 				EBA0B1C2D3E4F50617283A04 /* ImagePlaygroundCartoonGenerator.swift in Sources */,
 				ECA0B1C2D3E4F50617283A02 /* CartoonifyFlowCoordinator.swift in Sources */,
 				EDA0B1C2D3E4F50617283A02 /* CartoonifyFlowViewController.swift in Sources */,
+				F1A0B1C2D3E4F50617283A02 /* PromptSubjectAligning.swift in Sources */,
+				F1A0B1C2D3E4F50617283A04 /* VisionNLPAligner.swift in Sources */,
+				F2A0B1C2D3E4F50617283A02 /* CartoonifyPreflightCoordinator.swift in Sources */,
+				F3A0B1C2D3E4F50617283A02 /* CartoonifyPreflightViewController.swift in Sources */,
 				B2BC6CA92BD94F5A00D459F6 /* VocableListContentConfiguration+VoiceProfileItem.swift in Sources */,
 				B2971A152C762C8F006801F8 /* UICollectionDiffableDatasource+Mutations.swift in Sources */,
 				B291D12A2C5AE790006E9FA6 /* KeyboardSuggestionAnimationContainer.swift in Sources */,
@@ -2147,6 +2169,8 @@
 				EEA0B1C2D3E4F50617283A04 /* PhraseCartoonPromptDefaultsTests.swift in Sources */,
 				EFA0B1C2D3E4F50617283A04 /* CameraExclusiveCoordinatorTests.swift in Sources */,
 				F0A0B1C2D3E4F50617283A04 /* AudioExclusiveCoordinatorTests.swift in Sources */,
+				F1A0B1C2D3E4F50617283A06 /* VisionNLPAlignerTests.swift in Sources */,
+				F2A0B1C2D3E4F50617283A04 /* CartoonifyPreflightCoordinatorTests.swift in Sources */,
 				6B8D3C1F282C288C00DDB9B7 /* AccessibilityID+Settings+EditPhrases.swift in Sources */,
 				6BE02F6D2816EF88002CCCED /* Environment.swift in Sources */,
 				6B8D3C2C282C2B5E00DDB9B7 /* XCUIElementQuery+AccessibilityID.swift in Sources */,

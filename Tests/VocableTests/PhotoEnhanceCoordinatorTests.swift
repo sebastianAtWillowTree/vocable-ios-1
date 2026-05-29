@@ -18,6 +18,7 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
     private var picker: SpyVariantPicker!
     private var lifter: SpySubjectLifter!
     private var cartoonifier: SpyCartoonifier!
+    private var preflight: SpyPreflightPresenter!
     private var progress: SpyProgress!
     private var userDefaults: UserDefaults!
     private var suiteName: String!
@@ -28,6 +29,7 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
         picker = SpyVariantPicker()
         lifter = SpySubjectLifter()
         cartoonifier = SpyCartoonifier()
+        preflight = SpyPreflightPresenter()
         progress = SpyProgress()
         suiteName = "PhotoEnhanceCoordinatorTests.\(UUID().uuidString)"
         userDefaults = UserDefaults(suiteName: suiteName)
@@ -134,35 +136,196 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
         XCTAssertEqual(received.flatMap { $0 }?.image.size, input.size)
     }
 
+    // MARK: - CC15: pipeline order — preflight → applier → post-lift
+
     func test_selectingCartoonify_invokesApplier_withInitialPrompt() {
-        let coordinator = makeCoordinator(subjectLift: false, cartoonify: true, toggleOn: true)
-        let input = makeImage(color: .green)
+        // With subjectLift available, .cartoonify hands the ORIGINAL image
+        // to the applier and lifts the cartoonified RESULT afterwards.
+        let coordinator = makeCoordinator(subjectLift: true, cartoonify: true, toggleOn: true)
+        let input = makeImage(color: .green, size: CGSize(width: 32, height: 32))
         var received: PhotoEnhanceOutcome??
         coordinator.enhance(image: input, initialCartoonPrompt: "a red ball", from: host) {
             received = .some($0)
         }
         picker.lastOnSelect?(.cartoonify)
+
+        // Applier kicks off first on the ORIGINAL — no pre-lift, no preflight.
+        XCTAssertEqual(lifter.calls.count, 0)
         XCTAssertEqual(cartoonifier.calls.count, 1)
+        XCTAssertEqual(cartoonifier.calls.last?.sourceImage.size, input.size)
         XCTAssertEqual(cartoonifier.calls.last?.initialPrompt, "a red ball")
         XCTAssertNil(received)
 
-        let cartoonImage = makeImage(color: .magenta)
+        let cartoonImage = makeImage(color: .magenta, size: CGSize(width: 64, height: 64))
         cartoonifier.deliver(CartoonifyOutcome(image: cartoonImage, prompt: "a red ball"))
 
-        XCTAssertEqual(received.flatMap { $0 }?.image.size, cartoonImage.size)
+        // Post-lift runs on the CARTOON output.
+        XCTAssertEqual(lifter.calls.count, 1)
+        XCTAssertEqual(lifter.calls.last?.0.size, cartoonImage.size)
+        XCTAssertNil(received)
+
+        let liftedCartoon = makeImage(color: .yellow, size: CGSize(width: 48, height: 48))
+        lifter.deliver(liftedCartoon)
+
+        XCTAssertEqual(received.flatMap { $0 }?.image.size, liftedCartoon.size)
         XCTAssertEqual(received.flatMap { $0 }?.cartoonPrompt, "a red ball")
     }
 
-    func test_cartoonifyCancelled_returnsNilOutcome() {
+    func test_selectingCartoonify_whenPostLiftReturnsNil_keepsCartoonAsIs() {
+        let coordinator = makeCoordinator(subjectLift: true, cartoonify: true, toggleOn: true)
+        let input = makeImage(color: .green)
+        var received: PhotoEnhanceOutcome??
+        coordinator.enhance(image: input, from: host) { received = .some($0) }
+        picker.lastOnSelect?(.cartoonify)
+
+        let cartoonImage = makeImage(color: .magenta, size: CGSize(width: 64, height: 64))
+        cartoonifier.deliver(CartoonifyOutcome(image: cartoonImage, prompt: ""))
+
+        XCTAssertEqual(lifter.calls.count, 1)
+        lifter.deliver(nil)
+
+        // Lift returned nil — outcome image stays the cartoon (no failure).
+        XCTAssertEqual(received.flatMap { $0 }?.image.size, cartoonImage.size)
+    }
+
+    func test_selectingCartoonify_withoutSubjectLiftAvailable_skipsPostLift() {
+        // Edge: gate.isSubjectLiftAvailable == false (older iOS). Cartoonify
+        // still works because post-lift is opportunistic; the cartoon output
+        // is the final image.
         let coordinator = makeCoordinator(subjectLift: false, cartoonify: true, toggleOn: true)
+        let input = makeImage(color: .green)
+        var received: PhotoEnhanceOutcome??
+        coordinator.enhance(image: input, from: host) { received = .some($0) }
+        picker.lastOnSelect?(.cartoonify)
+
+        XCTAssertEqual(cartoonifier.calls.count, 1)
+        XCTAssertEqual(cartoonifier.calls.last?.sourceImage.size, input.size)
+
+        let cartoonImage = makeImage(color: .magenta, size: CGSize(width: 64, height: 64))
+        cartoonifier.deliver(CartoonifyOutcome(image: cartoonImage, prompt: "x"))
+
+        XCTAssertEqual(lifter.calls.count, 0, "Post-lift skipped when gate marks lift unavailable")
+        XCTAssertEqual(received.flatMap { $0 }?.image.size, cartoonImage.size)
+        XCTAssertEqual(received.flatMap { $0 }?.cartoonPrompt, "x")
+    }
+
+    func test_cartoonifyCancelled_returnsNilOutcome_andSkipsPostLift() {
+        let coordinator = makeCoordinator(subjectLift: true, cartoonify: true, toggleOn: true)
         var received: PhotoEnhanceOutcome??
         coordinator.enhance(image: makeImage(color: .green), from: host) {
             received = .some($0)
         }
         picker.lastOnSelect?(.cartoonify)
         cartoonifier.deliver(nil)
+        XCTAssertEqual(lifter.calls.count, 0, "Post-lift must not run when applier was cancelled")
         XCTAssertNotNil(received)
         XCTAssertNil(received.flatMap { $0 })
+    }
+
+    // MARK: - CC13/CC15: preflight comes BEFORE applier, post-lift comes AFTER
+
+    func test_cartoonifyWithPreflight_runsPreflight_thenApplier_thenPostLift() {
+        let coordinator = makeCoordinator(
+            subjectLift: true,
+            cartoonify: true,
+            toggleOn: true,
+            withPreflight: true
+        )
+        let input = makeImage(color: .green, size: CGSize(width: 32, height: 32))
+        var received: PhotoEnhanceOutcome??
+        coordinator.enhance(image: input, initialCartoonPrompt: "a red ball", from: host) {
+            received = .some($0)
+        }
+        picker.lastOnSelect?(.cartoonify)
+
+        // Preflight first, on the ORIGINAL image. No lift yet, no applier.
+        XCTAssertEqual(preflight.calls.count, 1)
+        XCTAssertEqual(preflight.calls.last?.sourceImage.size, input.size)
+        XCTAssertEqual(preflight.calls.last?.initialPrompt, "a red ball")
+        XCTAssertEqual(cartoonifier.calls.count, 0)
+        XCTAssertEqual(lifter.calls.count, 0)
+
+        // Caregiver confirmed a slightly different prompt — that should reach
+        // the applier.
+        preflight.deliver(.init(confirmedPrompt: "a bright red ball"))
+
+        XCTAssertEqual(cartoonifier.calls.count, 1)
+        XCTAssertEqual(cartoonifier.calls.last?.sourceImage.size, input.size,
+                       "Applier receives the ORIGINAL (preflight does not lift)")
+        XCTAssertEqual(cartoonifier.calls.last?.initialPrompt, "a bright red ball")
+        XCTAssertEqual(lifter.calls.count, 0)
+
+        let cartoonImage = makeImage(color: .magenta, size: CGSize(width: 64, height: 64))
+        cartoonifier.deliver(CartoonifyOutcome(image: cartoonImage, prompt: "a bright red ball"))
+
+        // Post-lift on the cartoon.
+        XCTAssertEqual(lifter.calls.count, 1)
+        XCTAssertEqual(lifter.calls.last?.0.size, cartoonImage.size)
+        XCTAssertNil(received)
+
+        let liftedCartoon = makeImage(color: .yellow, size: CGSize(width: 48, height: 48))
+        lifter.deliver(liftedCartoon)
+        XCTAssertEqual(received.flatMap { $0 }?.image.size, liftedCartoon.size)
+        XCTAssertEqual(received.flatMap { $0 }?.cartoonPrompt, "a bright red ball")
+    }
+
+    func test_cartoonifyWithPreflight_cancelledAtPreflight_returnsNilOutcome_andSkipsApplier() {
+        let coordinator = makeCoordinator(
+            subjectLift: true,
+            cartoonify: true,
+            toggleOn: true,
+            withPreflight: true
+        )
+        var received: PhotoEnhanceOutcome??
+        coordinator.enhance(image: makeImage(color: .green), from: host) { received = .some($0) }
+        picker.lastOnSelect?(.cartoonify)
+        XCTAssertEqual(preflight.calls.count, 1)
+
+        preflight.deliver(nil) // cancelled
+
+        XCTAssertEqual(cartoonifier.calls.count, 0, "Applier must not run when preflight was cancelled")
+        XCTAssertEqual(lifter.calls.count, 0)
+        XCTAssertNotNil(received)
+        XCTAssertNil(received.flatMap { $0 })
+    }
+
+    func test_cartoonifyWithoutPreflight_skipsPreflight_andHandsDirectlyToApplier() {
+        // Regression for legacy/test configurations that omit the preflight.
+        let coordinator = makeCoordinator(
+            subjectLift: true,
+            cartoonify: true,
+            toggleOn: true,
+            withPreflight: false
+        )
+        coordinator.enhance(image: makeImage(color: .green), initialCartoonPrompt: "x", from: host) { _ in }
+        picker.lastOnSelect?(.cartoonify)
+
+        XCTAssertEqual(preflight.calls.count, 0)
+        XCTAssertEqual(cartoonifier.calls.count, 1)
+        XCTAssertEqual(cartoonifier.calls.last?.initialPrompt, "x")
+    }
+
+    func test_cartoonify_progressShown_duringPostLift_dismissedBeforeCompletion() {
+        // Progress UI wraps the POST-lift now (Image Playground has its own modal).
+        let coordinator = makeCoordinator(subjectLift: true, cartoonify: true, toggleOn: true)
+        var received: PhotoEnhanceOutcome??
+        coordinator.enhance(image: makeImage(color: .green), from: host) { received = .some($0) }
+        picker.lastOnSelect?(.cartoonify)
+
+        // No progress while the applier is doing its own thing.
+        XCTAssertEqual(progress.showCount, 0)
+
+        let cartoonImage = makeImage(color: .magenta, size: CGSize(width: 64, height: 64))
+        cartoonifier.deliver(CartoonifyOutcome(image: cartoonImage, prompt: ""))
+
+        // Now the post-lift step is running with progress UI.
+        XCTAssertEqual(progress.showCount, 1)
+        XCTAssertEqual(progress.dismissCount, 0)
+        XCTAssertNil(received)
+
+        lifter.deliver(makeImage(color: .yellow))
+        XCTAssertEqual(progress.dismissCount, 1)
+        XCTAssertNotNil(received)
     }
 
     func test_cancel_returnsNilCompletion() {
@@ -193,7 +356,8 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
     private func makeCoordinator(
         subjectLift: Bool,
         cartoonify: Bool,
-        toggleOn: Bool
+        toggleOn: Bool,
+        withPreflight: Bool = false
     ) -> PhotoEnhanceCoordinator {
         let capability = StubCapability(
             isSubjectLiftAvailable: subjectLift,
@@ -207,6 +371,7 @@ final class PhotoEnhanceCoordinatorTests: XCTestCase {
             picker: picker,
             subjectLifter: lifter,
             cartoonifyApplier: cartoonify ? cartoonifier : nil,
+            preflightPresenter: (cartoonify && withPreflight) ? preflight : nil,
             progress: progress
         )
     }
@@ -285,6 +450,34 @@ private final class SpyCartoonifier: CartoonifyApplying {
     }
 
     func deliver(_ outcome: CartoonifyOutcome?) {
+        calls.last?.completion(outcome)
+    }
+}
+
+private final class SpyPreflightPresenter: CartoonifyPreflightPresenting {
+
+    struct Call {
+        let sourceImage: UIImage
+        let initialPrompt: String?
+        let completion: (CartoonifyPreflightOutcome?) -> Void
+    }
+
+    private(set) var calls: [Call] = []
+
+    func presentPreflight(
+        sourceImage: UIImage,
+        initialPrompt: String?,
+        from presenter: UIViewController,
+        completion: @escaping (CartoonifyPreflightOutcome?) -> Void
+    ) {
+        calls.append(Call(
+            sourceImage: sourceImage,
+            initialPrompt: initialPrompt,
+            completion: completion
+        ))
+    }
+
+    func deliver(_ outcome: CartoonifyPreflightOutcome?) {
         calls.last?.completion(outcome)
     }
 }

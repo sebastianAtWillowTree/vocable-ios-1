@@ -81,6 +81,11 @@ final class PhotoEnhanceCoordinator {
     /// Category authoring passes nil; phrase authoring passes a real
     /// CartoonifyApplier.
     private let cartoonifyApplier: CartoonifyApplying?
+    /// Optional. When non-nil AND cartoonifyApplier is non-nil, the
+    /// .cartoonify variant runs a preflight prompt-vs-subject check
+    /// between subject lift and the applier. When nil, the applier is
+    /// invoked directly (legacy path / test configurations).
+    private let preflightPresenter: CartoonifyPreflightPresenting?
     private let progress: EnhancementProgressDisplaying
 
     init(
@@ -88,12 +93,14 @@ final class PhotoEnhanceCoordinator {
         picker: PhotoEnhanceVariantPickerPresenting,
         subjectLifter: SubjectLiftPerforming,
         cartoonifyApplier: CartoonifyApplying?,
+        preflightPresenter: CartoonifyPreflightPresenting? = nil,
         progress: EnhancementProgressDisplaying
     ) {
         self.gate = gate
         self.picker = picker
         self.subjectLifter = subjectLifter
         self.cartoonifyApplier = cartoonifyApplier
+        self.preflightPresenter = preflightPresenter
         self.progress = progress
     }
 
@@ -167,18 +174,73 @@ final class PhotoEnhanceCoordinator {
                 completion(PhotoEnhanceOutcome(image: image, cartoonPrompt: nil))
                 return
             }
-            applier.performCartoonify(
-                on: image,
-                initialPrompt: initialCartoonPrompt,
-                from: presenter
-            ) { outcome in
-                if let outcome {
-                    completion(PhotoEnhanceOutcome(image: outcome.image, cartoonPrompt: outcome.prompt))
-                } else {
-                    // Caregiver cancelled the cartoonify flow — bubble up
-                    // a nil completion so the caller knows to abandon save.
-                    completion(nil)
+
+            // Chain: preflight (if enabled) → cartoonify → post-lift.
+            //
+            // Lifting AFTER cartoonify is intentional. Image Playground
+            // works better when it sees the whole scene (it uses
+            // surrounding context to model the subject); running the
+            // lift on the original would strip that context. We then
+            // lift the cartoon output to produce a clean cartoon
+            // subject on a flat canvas — the final asset stored on the
+            // phrase.
+            //
+            // • Preflight: classifies the SOURCE image so the caregiver
+            //   gets a warning if their prompt doesn't match what's in
+            //   the photo. Skipped when no preflightPresenter injected.
+            // • Cartoonify: runs on the source image, with the
+            //   caregiver-confirmed prompt.
+            // • Post-lift: extracts the cartoon subject onto a flat
+            //   canvas. Opportunistic — falls back to the cartoon as-is
+            //   if the lift returns nil / iOS doesn't support it.
+            let liftCartoonThenComplete: (UIImage, String) -> Void = { [gate, subjectLifter] cartoonImage, confirmedPrompt in
+                guard gate.isSubjectLiftAvailable else {
+                    completion(PhotoEnhanceOutcome(image: cartoonImage, cartoonPrompt: confirmedPrompt))
+                    return
                 }
+                self.runWithProgress(presenter: presenter) { done in
+                    subjectLifter.performSubjectLift(on: cartoonImage) { liftedCartoon in
+                        done()
+                        completion(PhotoEnhanceOutcome(
+                            image: liftedCartoon ?? cartoonImage,
+                            cartoonPrompt: confirmedPrompt
+                        ))
+                    }
+                }
+            }
+
+            let runApplier: (String?) -> Void = { confirmedPrompt in
+                applier.performCartoonify(
+                    on: image,
+                    initialPrompt: confirmedPrompt,
+                    from: presenter
+                ) { outcome in
+                    guard let outcome else {
+                        // Caregiver cancelled the cartoonify flow — bubble up
+                        // a nil completion so the caller knows to abandon save.
+                        completion(nil)
+                        return
+                    }
+                    liftCartoonThenComplete(outcome.image, outcome.prompt)
+                }
+            }
+
+            if let preflightPresenter {
+                preflightPresenter.presentPreflight(
+                    sourceImage: image,
+                    initialPrompt: initialCartoonPrompt,
+                    from: presenter
+                ) { outcome in
+                    guard let outcome else {
+                        // Cancelled at the preflight step — abandon the
+                        // whole enhance flow.
+                        completion(nil)
+                        return
+                    }
+                    runApplier(outcome.confirmedPrompt)
+                }
+            } else {
+                runApplier(initialCartoonPrompt)
             }
         }
     }

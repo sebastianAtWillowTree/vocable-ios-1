@@ -182,8 +182,18 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
     }
 
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
-        let snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
+        var snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
         let shouldAnimate = view.window != nil
+        if #available(iOS 15, *) {
+            // Force-propagate reconfigured items so category cells
+            // refresh after attribute-only Core Data changes (photo
+            // assignment, etc.).
+            let reconfigured = snapshot.reconfiguredItemIdentifiers
+                .filter { snapshot.itemIdentifiers.contains($0) }
+            if !reconfigured.isEmpty {
+                snapshot.reconfigureItems(reconfigured)
+            }
+        }
         self.diffableDataSource.apply(snapshot, animatingDifferences: shouldAnimate) { [weak self] in
             guard
                 let self,

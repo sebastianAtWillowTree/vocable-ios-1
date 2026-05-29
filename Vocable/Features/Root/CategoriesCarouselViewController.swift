@@ -199,10 +199,18 @@ import Combine
             return (objectID: objectID, indexPath: indexPath)
         }()
 
-        let snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
+        var snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
         let shouldAnimate: Bool
         if #available(iOS 15, *) {
             shouldAnimate = false
+            // Force-propagate reconfigured items so category thumbnails
+            // refresh after a Core Data attribute-only update (e.g.
+            // imageAssetID assignment after a category photo save).
+            let reconfigured = snapshot.reconfiguredItemIdentifiers
+                .filter { snapshot.itemIdentifiers.contains($0) }
+            if !reconfigured.isEmpty {
+                snapshot.reconfigureItems(reconfigured)
+            }
         } else {
             shouldAnimate = true
         }

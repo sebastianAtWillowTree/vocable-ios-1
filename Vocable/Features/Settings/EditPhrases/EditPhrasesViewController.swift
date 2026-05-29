@@ -26,6 +26,17 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         picker: AlertVariantPicker(),
         subjectLifter: VisionSubjectLiftService(),
         cartoonifyApplier: CartoonifyApplier(),
+        // Preflight: classify the lifted subject and check it matches
+        // the caregiver's prompt before we spend Image Playground time
+        // on it. The result is a soft warning, not a hard gate.
+        preflightPresenter: DefaultCartoonifyPreflightPresenter(
+            aligner: VisionNLPAligner(
+                classifier: VisionImageClassifier(),
+                personDetector: VisionPersonDetector(),
+                tokenizer: NLPromptTokenizer(),
+                similarity: NLSemanticSimilarity()
+            )
+        ),
         progress: AlertEnhancementProgress()
     )
 
@@ -124,7 +135,17 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith snapshot: NSDiffableDataSourceSnapshotReference) {
 
         let pageCountBefore = collectionView.layout.pagesPerSection
-        let snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
+        var snapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
+        if #available(iOS 15, *) {
+            // Force-propagate reconfigured items so the photo / record
+            // button icons re-render after a Core Data attribute-only
+            // update (e.g. imageAssetID assignment after photo save).
+            let reconfigured = snapshot.reconfiguredItemIdentifiers
+                .filter { snapshot.itemIdentifiers.contains($0) }
+            if !reconfigured.isEmpty {
+                snapshot.reconfigureItems(reconfigured)
+            }
+        }
         dataSourceProxy.apply(snapshot, animatingDifferences: false)
 
         let pageCountAfter = collectionView.layout.pagesPerSection

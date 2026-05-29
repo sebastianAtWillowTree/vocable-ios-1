@@ -147,9 +147,19 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         let pageCountBefore = collectionView.layout.pagesPerSection
         let fetchedSnapshot = snapshot as NSDiffableDataSourceSnapshot<String, NSManagedObjectID>
 
-        let updatedSnapshot = makeSnapshot(from: fetchedSnapshot)
+        var updatedSnapshot = makeSnapshot(from: fetchedSnapshot)
 
         if #available(iOS 15, *) {
+            // Propagate reconfigured items through the mapItemIdentifier
+            // rebuild — otherwise an attribute-only change (e.g. a new
+            // imageAssetID after a photo save) is invisible to the diffable
+            // data source and the cell stays stale until app restart.
+            let reconfigured = fetchedSnapshot.reconfiguredItemIdentifiers
+                .map(CategoryItem.persistedPhrase)
+                .filter { updatedSnapshot.itemIdentifiers.contains($0) }
+            if !reconfigured.isEmpty {
+                updatedSnapshot.reconfigureItems(reconfigured)
+            }
             dataSourceProxy.apply(updatedSnapshot, animatingDifferences: false)
         } else {
             dataSourceProxy.apply(updatedSnapshot, animatingDifferences: true) { [weak self] in
