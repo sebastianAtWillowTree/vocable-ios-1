@@ -155,20 +155,101 @@ final class VisionSubjectLiftService: SubjectLiftPerforming {
 
 // MARK: - Cartoonify applier (iOS 18.1+, caregiver-described)
 
-/// Production CartoonifyApplying — constructs a CartoonifyFlowCoordinator
-/// backed by ImagePlaygroundCartoonGenerator and presents the multi-step
-/// flow VC. When the user accepts a result, the outcome carries both
-/// the generated image AND the prompt that produced it so callers can
-/// persist the prompt on the Phrase for future re-entry.
+#if canImport(ImagePlayground)
+import ImagePlayground
+#endif
+
+/// Production CartoonifyApplying.
+///
+/// On iOS 18.1+ when ImagePlaygroundViewController.isAvailable is true,
+/// presents Apple's system Image Playground UI with the source image
+/// pre-loaded and the caregiver's previous prompt (if any) supplied as
+/// an `.extracted(from:)` concept. Apple's UI handles the full
+/// generate + iterate + accept experience.
+///
+/// On unsupported devices (older iOS, Apple Intelligence disabled,
+/// non-AI-capable hardware) falls back to the custom describe →
+/// generate → review flow, which will show
+/// "Cartoon style isn't available on this device" rather than
+/// silently saving the original — no UI lies.
 final class CartoonifyApplier: CartoonifyApplying {
 
     private let generator: CartoonGenerating
+    private var activeDelegate: AnyObject?
 
     init(generator: CartoonGenerating = ImagePlaygroundCartoonGenerator()) {
         self.generator = generator
     }
 
     func performCartoonify(
+        on image: UIImage,
+        initialPrompt: String?,
+        from presenter: UIViewController,
+        completion: @escaping (CartoonifyOutcome?) -> Void
+    ) {
+        #if canImport(ImagePlayground)
+        if #available(iOS 18.1, *), ImagePlaygroundViewController.isAvailable {
+            presentSystemImagePlayground(
+                on: image,
+                initialPrompt: initialPrompt,
+                from: presenter,
+                completion: completion
+            )
+            return
+        }
+        #endif
+
+        // Fallback: custom flow (which currently always surfaces the
+        // honest "unavailable" error). Preserves the flow seam so a
+        // future non-Apple generator can be slotted in here.
+        presentCustomFlow(
+            on: image,
+            initialPrompt: initialPrompt,
+            from: presenter,
+            completion: completion
+        )
+    }
+
+    // MARK: - System Image Playground (iOS 18.1+)
+
+    #if canImport(ImagePlayground)
+    @available(iOS 18.1, *)
+    private func presentSystemImagePlayground(
+        on image: UIImage,
+        initialPrompt: String?,
+        from presenter: UIViewController,
+        completion: @escaping (CartoonifyOutcome?) -> Void
+    ) {
+        let vc = ImagePlaygroundViewController()
+        vc.sourceImage = image
+        if let trimmed = initialPrompt?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !trimmed.isEmpty {
+            vc.concepts = [.extracted(from: trimmed)]
+        }
+
+        // Delegate holds the completion closure and the prompt the
+        // caregiver supplied; on result it loads the URL into a UIImage
+        // and bridges back through CartoonifyOutcome.
+        let delegate = ImagePlaygroundDelegateAdapter(
+            initialPrompt: initialPrompt,
+            completion: { [weak self] outcome in
+                self?.activeDelegate = nil
+                presenter.dismiss(animated: true) {
+                    completion(outcome)
+                }
+            }
+        )
+        vc.delegate = delegate
+        // Retain through presentation — the VC only holds the delegate weakly.
+        activeDelegate = delegate
+
+        presenter.present(vc, animated: true)
+    }
+    #endif
+
+    // MARK: - Custom-flow fallback
+
+    private func presentCustomFlow(
         on image: UIImage,
         initialPrompt: String?,
         from presenter: UIViewController,
@@ -196,6 +277,49 @@ final class CartoonifyApplier: CartoonifyApplying {
         presenter.present(vc, animated: true)
     }
 }
+
+#if canImport(ImagePlayground)
+@available(iOS 18.1, *)
+private final class ImagePlaygroundDelegateAdapter: NSObject, ImagePlaygroundViewController.Delegate {
+
+    private let initialPrompt: String?
+    private let completion: (CartoonifyOutcome?) -> Void
+    private var didDeliver = false
+
+    init(initialPrompt: String?, completion: @escaping (CartoonifyOutcome?) -> Void) {
+        self.initialPrompt = initialPrompt
+        self.completion = completion
+    }
+
+    func imagePlaygroundViewController(
+        _ imagePlaygroundViewController: ImagePlaygroundViewController,
+        didCreateImageAt imageURL: URL
+    ) {
+        guard !didDeliver else { return }
+        didDeliver = true
+
+        guard let data = try? Data(contentsOf: imageURL),
+              let image = UIImage(data: data) else {
+            completion(nil)
+            return
+        }
+        // Best-effort cleanup — Apple writes a temp file we don't need
+        // to keep around once we've decoded it.
+        try? FileManager.default.removeItem(at: imageURL)
+
+        let prompt = (initialPrompt ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        completion(CartoonifyOutcome(image: image, prompt: prompt))
+    }
+
+    func imagePlaygroundViewControllerDidCancel(
+        _ imagePlaygroundViewController: ImagePlaygroundViewController
+    ) {
+        guard !didDeliver else { return }
+        didDeliver = true
+        completion(nil)
+    }
+}
+#endif
 
 // MARK: - Enhancement progress
 
