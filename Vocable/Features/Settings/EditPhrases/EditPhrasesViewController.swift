@@ -36,6 +36,11 @@ final class EditPhrasesViewController: PagingCarouselViewController, NSFetchedRe
         progress: AlertEnhancementProgress()
     )
 
+    /// Held for the lifetime of the caregiver-driven photo flow so the
+    /// HeadGaze AR session pauses while the camera/library/crop/enhance
+    /// modals are active. ARC-released on every terminal callback.
+    private var photoFlowCameraLease: CameraExclusiveLease?
+
     private lazy var dataSourceProxy = makeDataSourceProxy()
 
     private lazy var fetchRequest: NSFetchRequest<Phrase> = {
@@ -330,8 +335,18 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
         _ editor: PhrasePhotoEditorViewModel,
         requestsAddOrChangePhotoFor phraseID: NSManagedObjectID
     ) {
+        // Acquire the camera lease ONCE at the outermost entry point so
+        // head tracking is paused across the entire photo flow (source
+        // picker, crop, enhance, save). Every terminal path nils the
+        // property — ARC then runs the lease's deinit, which is
+        // idempotent.
+        photoFlowCameraLease = CameraExclusiveCoordinator.shared.acquire(reason: "Phrase photo")
+
         sourceCoordinator.present(from: self) { [weak self] image in
-            guard let self, let image else { return }
+            guard let self, let image else {
+                self?.photoFlowCameraLease = nil    // cancelled at source picker
+                return
+            }
             self.presentCropConfirmation(for: image, phraseID: phraseID)
         }
     }
@@ -346,6 +361,7 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
             },
             onCancel: { [weak self] in
                 self?.dismiss(animated: true)
+                self?.photoFlowCameraLease = nil    // cancelled at crop
             }
         )
         present(cropVC, animated: true)
@@ -363,6 +379,9 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
             initialCartoonPrompt: initialPrompt,
             from: self
         ) { [weak self] outcome in
+            // Always release the lease first — both cancel (nil) and
+            // success paths complete the photo flow here.
+            self?.photoFlowCameraLease = nil
             guard let self, let outcome else { return }
             self.savePickedImage(
                 outcome.image,

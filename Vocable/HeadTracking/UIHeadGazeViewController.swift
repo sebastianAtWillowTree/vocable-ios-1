@@ -30,7 +30,7 @@ extension UIApplication {
 }
 
 class UIHeadGazeViewController: UIViewController, ARSessionDelegate, ARSCNViewDelegate {
- 
+
     private(set) var sceneview: ARSCNView?
     private lazy var receivingWindow: HeadGazeWindow? = {
         for window in UIApplication.shared.connectedSceneWindows {
@@ -48,11 +48,24 @@ class UIHeadGazeViewController: UIViewController, ARSessionDelegate, ARSCNViewDe
     private var computedScale: CGFloat = 0
     private var xAngleCorrectionAmount = 0.0
     private var yAngleCorrectionAmount = 0.0
-    
+
     // The minimum/maximum values to scale how quickly the cursor moves around the screen
     var scalingRange = (3.0 ... 6.0)
-    
+
     private var disposables = Set<AnyCancellable>()
+
+    // MARK: - Camera-exclusive coordination
+    //
+    // The head-gaze window stays on screen even when other parts of the
+    // app present modals (caregiver photo capture, etc.), so the AR
+    // session would otherwise keep the front camera reserved and fight
+    // any other camera consumer. We subscribe to CameraExclusiveCoordinator
+    // so that whenever another subsystem acquires a lease, we pause the
+    // AR session for the duration.
+    private var cameraExclusiveObservation: CameraExclusiveObserverToken?
+    private var isViewVisible = false
+    private var isCameraSuspendedByCoordinator = false
+    private var isARSessionRunning = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,24 +92,52 @@ class UIHeadGazeViewController: UIViewController, ARSessionDelegate, ARSCNViewDe
         for interpolator in trackingInterpolators {
             interpolator.view = self.view
         }
+
+        // Subscribe to camera-exclusive state. When any other subsystem
+        // (e.g. caregiver photo capture) acquires a lease, we pause the
+        // AR session; when the last lease is released, we resume.
+        cameraExclusiveObservation = CameraExclusiveCoordinator.shared.observe { [weak self] isExclusive in
+            guard let self else { return }
+            self.isCameraSuspendedByCoordinator = isExclusive
+            self.applyTrackingState()
+        }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        isViewVisible = true
+        applyTrackingState()
 
-        let configuration = ARFaceTrackingConfiguration()
-        configuration.worldAlignment = .camera
-        sceneview?.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
-        
         if let sceneView = sceneview {
             sceneView.isHidden = false
             view.sendSubviewToBack(sceneView)
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        sceneview?.session.pause()
+        isViewVisible = false
+        applyTrackingState()
+    }
+
+    deinit {
+        cameraExclusiveObservation?.cancel()
+    }
+
+    /// Decides whether the AR session should currently be running and
+    /// transitions only on change (so we don't restart-with-reset
+    /// repeatedly or pause an already-paused session).
+    private func applyTrackingState() {
+        let shouldTrack = isViewVisible && !isCameraSuspendedByCoordinator
+        if shouldTrack && !isARSessionRunning {
+            let configuration = ARFaceTrackingConfiguration()
+            configuration.worldAlignment = .camera
+            sceneview?.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+            isARSessionRunning = true
+        } else if !shouldTrack && isARSessionRunning {
+            sceneview?.session.pause()
+            isARSessionRunning = false
+        }
     }
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {

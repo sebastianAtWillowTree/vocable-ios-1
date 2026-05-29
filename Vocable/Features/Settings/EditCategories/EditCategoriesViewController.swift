@@ -31,6 +31,10 @@ final class EditCategoriesViewController: PagingCarouselViewController, NSFetche
         progress: AlertEnhancementProgress()
     )
 
+    /// Held for the lifetime of the caregiver-driven photo flow so the
+    /// HeadGaze AR session pauses across capture/crop/enhance/save.
+    private var photoFlowCameraLease: CameraExclusiveLease?
+
     private var cellRegistration: UICollectionView.CellRegistration<VocableListCell, Category>!
 
     private lazy var diffableDataSource = CarouselCollectionViewDataSourceProxy<String, NSManagedObjectID>(collectionView: collectionView) { [weak self] (collectionView, indexPath, category) -> UICollectionViewCell? in
@@ -351,8 +355,13 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
         _ editor: CategoryPhotoEditorViewModel,
         requestsAddOrChangePhotoFor categoryID: NSManagedObjectID
     ) {
+        photoFlowCameraLease = CameraExclusiveCoordinator.shared.acquire(reason: "Category photo")
+
         sourceCoordinator.present(from: self) { [weak self] image in
-            guard let self, let image else { return }
+            guard let self, let image else {
+                self?.photoFlowCameraLease = nil
+                return
+            }
             self.presentCropConfirmation(for: image, categoryID: categoryID)
         }
     }
@@ -391,6 +400,7 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
             },
             onCancel: { [weak self] in
                 self?.dismiss(animated: true)
+                self?.photoFlowCameraLease = nil
             }
         )
         present(cropVC, animated: true)
@@ -398,6 +408,7 @@ extension EditCategoriesViewController: CategoryPhotoEditorDelegate {
 
     private func runEnhanceAndSave(_ image: UIImage, for categoryID: NSManagedObjectID) {
         enhanceCoordinator.enhance(image: image, from: self) { [weak self] outcome in
+            self?.photoFlowCameraLease = nil
             guard let outcome else { return }
             self?.savePickedImage(outcome.image, for: categoryID)
         }
