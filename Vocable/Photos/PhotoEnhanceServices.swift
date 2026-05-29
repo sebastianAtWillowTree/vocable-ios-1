@@ -226,6 +226,16 @@ final class CartoonifyApplier: CartoonifyApplying {
            !trimmed.isEmpty {
             vc.concepts = [.extracted(from: trimmed)]
         }
+        // Cartoonify is for objects, not people. Image Playground's
+        // face/identity personalization (Genmoji-style) tries to pin
+        // a detected face to the user's contacts and routes through a
+        // different generation path. Disable it explicitly so the
+        // caregiver's "blue sippy cup" prompt isn't hijacked by a face
+        // in the background of the photo. iOS 18.4+ only — older
+        // releases inherit the system default.
+        if #available(iOS 18.4, *) {
+            vc.personalizationPolicy = .disabled
+        }
 
         // Delegate holds the completion closure and the prompt the
         // caregiver supplied; on result it loads the URL into a UIImage
