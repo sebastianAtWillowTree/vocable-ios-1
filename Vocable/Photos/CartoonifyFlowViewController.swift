@@ -49,8 +49,34 @@ final class CartoonifyFlowViewController: UIViewController, UITextViewDelegate {
             localized: "cartoonify.describe.accessibility",
             defaultValue: "Description for the cartoon"
         )
+        view.inputAccessoryView = makeKeyboardToolbar()
         return view
     }()
+
+    private func makeKeyboardToolbar() -> UIToolbar {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+        let flexible = UIBarButtonItem(
+            barButtonSystemItem: .flexibleSpace,
+            target: nil,
+            action: nil
+        )
+        let done = UIBarButtonItem(
+            title: String(
+                localized: "cartoonify.keyboard.done",
+                defaultValue: "Done"
+            ),
+            style: .done,
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        toolbar.items = [flexible, done]
+        return toolbar
+    }
+
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
     private lazy var errorLabel: UILabel = {
         let label = UILabel()
@@ -165,6 +191,12 @@ final class CartoonifyFlowViewController: UIViewController, UITextViewDelegate {
             cancelButton.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -24)
         ])
 
+        // Tap anywhere outside the text view to dismiss the keyboard.
+        // cancelsTouchesInView = false so taps still reach buttons.
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+
         coordinator.onStateChange = { [weak self] state in
             self?.render(state: state)
         }
@@ -243,6 +275,9 @@ final class CartoonifyFlowViewController: UIViewController, UITextViewDelegate {
     // MARK: - Actions
 
     @objc private func primaryTapped() {
+        // Always relinquish first-responder so the keyboard doesn't
+        // linger over the next-state UI.
+        view.endEditing(true)
         switch coordinator.state {
         case .describing:
             coordinator.generate()
@@ -254,6 +289,7 @@ final class CartoonifyFlowViewController: UIViewController, UITextViewDelegate {
     }
 
     @objc private func secondaryTapped() {
+        view.endEditing(true)
         // Only meaningful in .reviewing — refine.
         if case .reviewing = coordinator.state {
             coordinator.refine()
@@ -261,6 +297,7 @@ final class CartoonifyFlowViewController: UIViewController, UITextViewDelegate {
     }
 
     @objc private func cancelTapped() {
+        view.endEditing(true)
         // In .generating, cancel the in-flight request and stay in the flow.
         // In .describing / .reviewing, dismiss the entire flow.
         if case .generating = coordinator.state {
