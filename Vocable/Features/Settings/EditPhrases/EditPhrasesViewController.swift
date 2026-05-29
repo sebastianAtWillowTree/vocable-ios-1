@@ -352,10 +352,11 @@ extension EditPhrasesViewController: PhrasePhotoEditorDelegate {
     }
 
     private func runEnhanceAndSave(_ image: UIImage, for phraseID: NSManagedObjectID) {
-        // Pre-fill cartoon prompt from the phrase if one was saved
-        // previously so caregivers can iterate without retyping.
+        // Seed the cartoonify description: prefer a previously-saved
+        // prompt; otherwise default to a template derived from the
+        // phrase's utterance. The caregiver can edit before generating.
         let context = NSPersistentContainer.shared.viewContext
-        let initialPrompt = (context.object(with: phraseID) as? Phrase)?.cartoonPrompt
+        let initialPrompt = (context.object(with: phraseID) as? Phrase)?.initialCartoonPrompt
 
         enhanceCoordinator.enhance(
             image: image,
