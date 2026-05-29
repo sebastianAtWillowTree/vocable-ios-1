@@ -88,6 +88,11 @@ final class AudioCaptureService: NSObject, AudioCaptureServicing, AVAudioRecorde
     private var outputURL: URL?
     private var encodeError: Error?
 
+    /// Held for the duration of capture so AudioEngineController
+    /// suspends its engine while we own the session. Released on
+    /// stop / cancel (idempotent via ARC).
+    private var audioLease: AudioExclusiveLease?
+
     init(
         configuration: RecordingConfiguration = .defaultM4A,
         fileManager: FileManager = .default
@@ -111,6 +116,13 @@ final class AudioCaptureService: NSObject, AudioCaptureServicing, AVAudioRecorde
         // Defensive: a previous prepare() without stop()/cancel() left
         // an orphan temp file behind. Clear it before we overwrite.
         discardOutputFile()
+
+        // Acquire the audio lease BEFORE touching the session so the
+        // engine controller pauses before our category/active changes
+        // land. If a previous lease is still held (e.g. callers chained
+        // prepare without stop), the ARC reassignment releases it
+        // cleanly via deinit.
+        audioLease = AudioExclusiveCoordinator.shared.acquire(reason: "Audio capture")
 
         let directory = fileManager.temporaryDirectory
             .appendingPathComponent("AudioCapture")
@@ -188,6 +200,10 @@ final class AudioCaptureService: NSObject, AudioCaptureServicing, AVAudioRecorde
             false,
             options: .notifyOthersOnDeactivation
         )
+        // Release the exclusive lease AFTER deactivating so the engine
+        // controller doesn't try to reactivate the session while we're
+        // still tearing it down.
+        audioLease = nil
     }
 
     private func discardOutputFile() {

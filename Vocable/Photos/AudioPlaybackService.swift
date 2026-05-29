@@ -20,6 +20,11 @@ final class AudioPlaybackService: NSObject, AudioPlaybackServicing, AVAudioPlaye
 
     private var player: AVAudioPlayer?
 
+    /// Held for the duration of playback so AudioEngineController
+    /// suspends its engine. Released on stop / natural completion /
+    /// decode error (ARC idempotent across paths).
+    private var audioLease: AudioExclusiveLease?
+
     override init() {
         super.init()
     }
@@ -28,6 +33,10 @@ final class AudioPlaybackService: NSObject, AudioPlaybackServicing, AVAudioPlaye
 
     func play(url: URL) throws {
         player?.stop()
+
+        // Acquire before any session work so the engine controller
+        // suspends before our category change lands.
+        audioLease = AudioExclusiveCoordinator.shared.acquire(reason: "Audio playback")
 
         let session = AVAudioSession.sharedInstance()
         // Match AudioEngineController's playback category/mode so the
@@ -70,5 +79,9 @@ final class AudioPlaybackService: NSObject, AudioPlaybackServicing, AVAudioPlaye
             false,
             options: .notifyOthersOnDeactivation
         )
+        // Release the lease AFTER deactivating so the engine controller
+        // doesn't try to reactivate the session while we're still
+        // tearing down.
+        audioLease = nil
     }
 }

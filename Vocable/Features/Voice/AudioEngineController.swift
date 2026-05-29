@@ -34,10 +34,48 @@ class AudioEngineController: NSObject, AVAudioPlayerDelegate {
 
     private var audioPlayers = Set<AVAudioPlayer>()
 
+    /// True when another subsystem (AudioCaptureService /
+    /// AudioPlaybackService) holds an AudioExclusiveCoordinator lease.
+    /// While suspended, this controller does NOT touch the audio
+    /// session — the lease holder owns it. On release, updateAudioSession
+    /// runs to restore whatever state listening mode etc. requires.
+    private var isSuspendedByCoordinator = false
+
+    private var audioExclusiveObservation: AudioExclusiveObserverToken?
+
     override init() {
         super.init()
         setupRouteChangeNotifications()
         updateAudioSession()
+        subscribeToAudioExclusiveCoordinator()
+    }
+
+    private func subscribeToAudioExclusiveCoordinator() {
+        audioExclusiveObservation = AudioExclusiveCoordinator.shared.observe { [weak self] isExclusive in
+            self?.handleExclusiveStateChange(isExclusive)
+        }
+    }
+
+    private func handleExclusiveStateChange(_ isExclusive: Bool) {
+        dispatchInternalAsync { [weak self] in
+            guard let self else { return }
+            if isExclusive {
+                // Another subsystem owns the session now. Pause the
+                // engine so its input/output nodes don't fight the
+                // new session configuration. Leave audioEngineShouldRun
+                // intact so we can restore it on release.
+                if self.audioEngine.isRunning {
+                    self.audioEngine.pause()
+                    print("AUDIO ENGINE PAUSED (exclusive lease)")
+                }
+                self.isSuspendedByCoordinator = true
+            } else {
+                // Lease released — re-evaluate session and restart the
+                // engine if a speech recognizer is still registered.
+                self.isSuspendedByCoordinator = false
+                self.updateAudioSession()
+            }
+        }
     }
 
     private func dispatchInternalAsync(_ actions: @escaping () -> Void) {
@@ -201,6 +239,15 @@ class AudioEngineController: NSObject, AVAudioPlayerDelegate {
             var sessionNeedsActivation = false
             guard let self = self else {
                 completion?(result)
+                return
+            }
+            // If another subsystem holds an AudioExclusiveCoordinator
+            // lease, do NOT touch the session. Returning false signals
+            // that the engine is currently unavailable for our use.
+            // handleExclusiveStateChange will call updateAudioSession
+            // again when the lease releases.
+            if self.isSuspendedByCoordinator {
+                completion?(false)
                 return
             }
             do {
