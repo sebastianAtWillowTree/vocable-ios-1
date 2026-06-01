@@ -25,10 +25,14 @@ extension Phrase {
         }
         if let utteranceValue = utterance?.trimmingCharacters(in: .whitespacesAndNewlines),
            !utteranceValue.isEmpty {
-            return String(
+            // The catalog value carries a %@ placeholder; substitute via
+            // String(format:) so the utterance lands correctly in both
+            // the development-language default and any translation.
+            let template = String(
                 localized: "cartoonify.default_prompt.template",
-                defaultValue: "a friendly cartoon of \(utteranceValue)"
+                defaultValue: "a colorful, high contrast, child friendly cartoon illustration of %@"
             )
+            return String(format: template, utteranceValue)
         }
         return nil
     }

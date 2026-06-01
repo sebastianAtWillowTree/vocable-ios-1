@@ -96,11 +96,58 @@ final class ImageAssetStoreTests: XCTestCase {
         XCTAssertEqual(all, Set([id1, id2, id3]))
     }
 
-    func test_listAllAssetIDs_excludesNonJPEGFiles() throws {
+    func test_listAllAssetIDs_excludesNonImageFiles() throws {
         _ = try store.save(makeTestImage())
         let strayURL = temporaryDirectory.appendingPathComponent("not-an-asset.txt")
         try Data("hello".utf8).write(to: strayURL)
         XCTAssertEqual(store.allAssetIDs().count, 1)
+    }
+
+    // MARK: - Transparency → PNG
+
+    func test_save_persistsTransparentImageAsPNG_magicBytes() throws {
+        let id = try store.save(makeTransparentImage())
+        let url = temporaryDirectory.appendingPathComponent("\(id).png")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: url.path),
+            "Transparent image should be written with a .png extension"
+        )
+        let data = try Data(contentsOf: url)
+        XCTAssertEqual(
+            Array(data.prefix(8)),
+            [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+            "File should begin with PNG magic bytes"
+        )
+    }
+
+    func test_save_transparentImage_thenLoad_preservesAlpha() throws {
+        let id = try store.save(makeTransparentImage(size: CGSize(width: 40, height: 40)))
+        let loaded = try XCTUnwrap(store.load(id: id))
+        XCTAssertEqual(loaded.size, CGSize(width: 40, height: 40))
+        XCTAssertTrue(
+            ImageAssetStore.containsTransparency(loaded),
+            "Round-tripped PNG should still report transparency"
+        )
+    }
+
+    func test_save_opaqueImage_isDetectedAsNonTransparent() {
+        XCTAssertFalse(
+            ImageAssetStore.containsTransparency(makeTestImage()),
+            "A fully-filled opaque image must not be classified as transparent"
+        )
+    }
+
+    func test_delete_removesPNGAsset() throws {
+        let id = try store.save(makeTransparentImage())
+        XCTAssertNotNil(store.load(id: id))
+        try store.delete(id: id)
+        XCTAssertNil(store.load(id: id))
+    }
+
+    func test_listAllAssetIDs_includesBothJPEGAndPNG() throws {
+        let jpegID = try store.save(makeTestImage())
+        let pngID = try store.save(makeTransparentImage())
+        XCTAssertEqual(Set(store.allAssetIDs()), Set([jpegID, pngID]))
     }
 
     func test_defaultDirectory_resolvesUnderApplicationSupportPhraseImages() {
@@ -121,6 +168,26 @@ final class ImageAssetStoreTests: XCTestCase {
         return renderer.image { ctx in
             UIColor.red.setFill()
             ctx.fill(CGRect(origin: .zero, size: size))
+        }
+    }
+
+    /// A square image with a fully transparent border around a smaller
+    /// opaque center — mimics a subject lifted onto a transparent canvas.
+    private func makeTransparentImage(size: CGSize = CGSize(width: 32, height: 32)) -> UIImage {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
+        return renderer.image { ctx in
+            // Leave the canvas transparent; fill only the central quarter.
+            UIColor.blue.setFill()
+            let inset = CGRect(
+                x: size.width * 0.375,
+                y: size.height * 0.375,
+                width: size.width * 0.25,
+                height: size.height * 0.25
+            )
+            ctx.fill(inset)
         }
     }
 }

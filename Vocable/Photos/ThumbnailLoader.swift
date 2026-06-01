@@ -105,6 +105,9 @@ final class ThumbnailLoader: ThumbnailLoading {
     private static func downscale(_ image: UIImage, to targetSize: CGSize) -> UIImage? {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
+        // Preserve alpha so subject-lifted / cartoonified thumbnails
+        // keep their transparent background through the downscale.
+        format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
         return renderer.image { _ in
             image.draw(in: CGRect(origin: .zero, size: targetSize))

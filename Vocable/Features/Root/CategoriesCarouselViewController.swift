@@ -45,6 +45,15 @@ import Combine
 
     private var dataSourceProxy: DataSource!
 
+    /// Observes Core Data saves so that attribute-only changes
+    /// (e.g. Category.imageAssetID after a photo save) trigger an
+    /// explicit cell reconfigure. NSFetchedResultsController's iOS
+    /// 15+ snapshot only tracks property changes referenced in the
+    /// FRC's sort/predicate — pure attribute updates outside that
+    /// set don't propagate, leaving the carousel tile stale until
+    /// app restart.
+    private var contextDidSaveObserver: NSObjectProtocol?
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -165,6 +174,49 @@ import Combine
         controller.delegate = self
         frc = controller
         try? frc.performFetch()
+
+        // Re-subscribe to the new context every time the FRC is rebuilt.
+        // viewContext is shared so the object reference is stable, but
+        // we re-register to be defensive against any future swap.
+        if let observer = contextDidSaveObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        contextDidSaveObserver = NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: controller.managedObjectContext,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleContextDidSave(notification)
+        }
+    }
+
+    deinit {
+        if let observer = contextDidSaveObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    private func handleContextDidSave(_ notification: Notification) {
+        guard let info = notification.userInfo else { return }
+        var changedCategoryIDs: Set<NSManagedObjectID> = []
+        for key in [NSUpdatedObjectsKey, NSRefreshedObjectsKey] {
+            guard let objects = info[key] as? Set<NSManagedObject> else { continue }
+            for object in objects where object is Category {
+                changedCategoryIDs.insert(object.objectID)
+            }
+        }
+        guard !changedCategoryIDs.isEmpty else { return }
+
+        var snapshot = dataSourceProxy.snapshot()
+        let items = changedCategoryIDs.filter { snapshot.itemIdentifiers.contains($0) }
+        guard !items.isEmpty else { return }
+
+        if #available(iOS 15, *) {
+            snapshot.reconfigureItems(Array(items))
+        } else {
+            snapshot.reloadItems(Array(items))
+        }
+        dataSourceProxy.apply(snapshot, animatingDifferences: false)
     }
 
     private lazy var thumbnailLoader: ThumbnailLoading? = {

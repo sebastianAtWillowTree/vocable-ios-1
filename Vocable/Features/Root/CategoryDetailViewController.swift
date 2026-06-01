@@ -27,6 +27,15 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
 
     private var dataSourceProxy: DataSource!
 
+    /// Observes Core Data saves so that attribute-only changes
+    /// (e.g. Phrase.imageAssetID after a photo save) trigger an
+    /// explicit cell reconfigure. NSFetchedResultsController's
+    /// `reconfiguredItemIdentifiers` on iOS 15+ only tracks changes
+    /// to properties referenced by the FRC's sort/predicate — pure
+    /// attribute updates outside that set don't propagate and the
+    /// phrase tile stays on the old thumbnail until app restart.
+    private var contextDidSaveObserver: NSObjectProtocol?
+
     private lazy var fetchRequest: NSFetchRequest<Phrase> = {
         let request: NSFetchRequest<Phrase> = Phrase.fetchRequest()
 
@@ -70,6 +79,48 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         updateLayoutForCurrentTraitCollection()
 
         frc.delegate = self
+        observeCoreDataSaves()
+    }
+
+    deinit {
+        if let observer = contextDidSaveObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    private func observeCoreDataSaves() {
+        contextDidSaveObserver = NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: frc.managedObjectContext,
+            queue: .main
+        ) { [weak self] notification in
+            self?.handleContextDidSave(notification)
+        }
+    }
+
+    private func handleContextDidSave(_ notification: Notification) {
+        guard let info = notification.userInfo else { return }
+        var changedPhraseIDs: Set<NSManagedObjectID> = []
+        for key in [NSUpdatedObjectsKey, NSRefreshedObjectsKey] {
+            guard let objects = info[key] as? Set<NSManagedObject> else { continue }
+            for object in objects where object is Phrase {
+                changedPhraseIDs.insert(object.objectID)
+            }
+        }
+        guard !changedPhraseIDs.isEmpty else { return }
+
+        var snapshot = dataSourceProxy.snapshot()
+        let items = changedPhraseIDs
+            .map(CategoryItem.persistedPhrase)
+            .filter { snapshot.itemIdentifiers.contains($0) }
+        guard !items.isEmpty else { return }
+
+        if #available(iOS 15, *) {
+            snapshot.reconfigureItems(items)
+        } else {
+            snapshot.reloadItems(items)
+        }
+        dataSourceProxy.apply(snapshot, animatingDifferences: false)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -119,6 +170,11 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         guard let store = try? ImageAssetStore() else { return nil }
         return ThumbnailLoader(store: store)
     }()
+
+    /// Full-resolution store used to flash the phrase photo on
+    /// selection (the thumbnail loader downscales, which we don't want
+    /// for the full-screen presentation).
+    private lazy var imageStore: ImageAssetStoring? = try? ImageAssetStore()
 
     private lazy var audioStore: AudioAssetStoring? = try? AudioAssetStore()
     private lazy var audioPlayback: AudioPlaybackServicing = AudioPlaybackService()
@@ -198,6 +254,9 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
         switch item {
         case .persistedPhrase(let objectId):
             let context = NSPersistentContainer.shared.newBackgroundContext()
+            // Captured on the main thread so the lazy store isn't first
+            // touched from the background context queue.
+            let imageStore = self.imageStore
 
             context.perform { [weak self] in
                 guard
@@ -220,7 +279,13 @@ class CategoryDetailViewController: PagingCarouselViewController, NSFetchedResul
 
                 let assetID = phrase.audioAssetID
                 let prefersRecording = phrase.prefersRecording
+                // Decode the photo off the main thread; flashed on
+                // selection regardless of the audio path below.
+                let flashImage: UIImage? = phrase.imageAssetID.flatMap { imageStore?.load(id: $0) }
                 DispatchQueue.main.async {
+                    if let flashImage, let window = self.view.window {
+                        FullScreenImageOverlay.shared.show(image: flashImage, in: window)
+                    }
                     if prefersRecording,
                        let assetID,
                        let store = self.audioStore,

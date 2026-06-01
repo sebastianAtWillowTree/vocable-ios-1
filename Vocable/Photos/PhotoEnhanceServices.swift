@@ -120,7 +120,7 @@ final class VisionSubjectLiftService: SubjectLiftPerforming {
                     DispatchQueue.main.async { completion(nil) }
                     return
                 }
-                let composited = Self.compositeOnSystemGray(
+                let composited = Self.compositeOnTransparentCanvas(
                     foreground: UIImage(cgImage: outputCG),
                     boundingSize: image.size
                 )
@@ -131,20 +131,22 @@ final class VisionSubjectLiftService: SubjectLiftPerforming {
         }
     }
 
-    private static func compositeOnSystemGray(
+    private static func compositeOnTransparentCanvas(
         foreground: UIImage,
         boundingSize: CGSize
     ) -> UIImage {
-        // Recenter the extracted subject inside a square canvas filled
-        // with system gray. Canvas side = max(boundingSize.width/height).
+        // Recenter the extracted subject inside a square TRANSPARENT
+        // canvas. The masked foreground already carries alpha=0 in the
+        // non-subject region; we keep the canvas transparent (opaque =
+        // false) so the cell background shows through when presented.
+        // Canvas side = max(boundingSize.width/height).
         let side = max(boundingSize.width, boundingSize.height, max(foreground.size.width, foreground.size.height))
         let canvasSize = CGSize(width: side, height: side)
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
+        format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: canvasSize, format: format)
-        return renderer.image { ctx in
-            UIColor.systemGray.setFill()
-            ctx.fill(CGRect(origin: .zero, size: canvasSize))
+        return renderer.image { _ in
             let drawSize = foreground.size
             let originX = (canvasSize.width - drawSize.width) / 2
             let originY = (canvasSize.height - drawSize.height) / 2
@@ -224,7 +226,19 @@ final class CartoonifyApplier: CartoonifyApplying {
         vc.sourceImage = image
         if let trimmed = initialPrompt?.trimmingCharacters(in: .whitespacesAndNewlines),
            !trimmed.isEmpty {
-            vc.concepts = [.extracted(from: trimmed)]
+            // Augment with a high-contrast style hint so the generated
+            // cartoon biases toward AAC-friendly bold colors. The
+            // ORIGINAL prompt (without the suffix) is still what we
+            // persist on Phrase.cartoonPrompt — the caregiver sees
+            // their own words, not our augmentation.
+            //
+            // Use `.text(_:)`, NOT `.extracted(from:)`. `.extracted` is
+            // for pulling salient concepts out of a long passage and
+            // fragments a directive prompt into oddly-weighted pieces;
+            // `.text` feeds the phrase to the generator as a single
+            // intentional concept.
+            let augmented = CartoonStylePromptAugmenter.augment(trimmed)
+            vc.concepts = [.text(augmented)]
         }
         // Cartoonify is for objects, not people. Image Playground's
         // face/identity personalization (Genmoji-style) tries to pin
